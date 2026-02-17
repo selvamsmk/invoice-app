@@ -1,0 +1,2 @@
+companyName,addressLine1,addressLine2,addressLine3,city,state,country,pincode,gstin,drugLicenseNumber,phoneNumber,emailAddress,bankAccountNumber,ifscCode,bankName,branch
+Your Company Name,123 Main Street,Suite 100,,Your City,Your State,India,000000,00XXXXX0000X0XX,XX-00-00X-0000,+91-0000000000,company@example.com,0000000000000000,XXXX0000000,Your Bank Name,Your Branch

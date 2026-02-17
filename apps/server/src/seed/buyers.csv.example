@@ -1,0 +1,3 @@
+name,addressLine1,addressLine2,addressLine3,city,state,country,pincode,gstin,mobileNumber,emailAddress,drugLicenseNumber,stateCode,totalInvoices
+Example Hospital,123 Main Street,Example Area,,Example City,Example State,India,000000,00XXXXX0000X0XX,+91-0000000000,buyer@example.com,XX-00-00X-0000,00,0
+Sample Medical Center,"456 Second Street, Building A",Near Example Park,Floor 2,Sample City,Sample State,India,111111,11YYYYY1111Y1YY,+91-1111111111,contact@sample.com,YY-11-11Y-1111,11,0

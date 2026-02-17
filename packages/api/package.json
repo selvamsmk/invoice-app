@@ -1,0 +1,37 @@
+{
+  "name": "@invoice-app/api",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    },
+    "./pdf-render": {
+      "default": "./src/pdf-render.tsx"
+    }
+  },
+  "type": "module",
+  "scripts": {},
+  "devDependencies": {
+    "@invoice-app/config": "workspace:*",
+    "@types/react": "~19.1.10"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "@types/react": "~19.1.10"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^4.3.2",
+    "react": "19.1.2",
+    "@orpc/server": "catalog:",
+    "@orpc/client": "catalog:",
+    "@orpc/openapi": "catalog:",
+    "@orpc/zod": "catalog:",
+    "elysia": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:",
+    "@invoice-app/auth": "workspace:*",
+    "@invoice-app/db": "workspace:*"
+  }
+}

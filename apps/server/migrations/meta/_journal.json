@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1769756315491,
+      "tag": "0000_magical_black_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1769763206151,
+      "tag": "0001_concerned_shaman",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1770393277493,
+      "tag": "0002_square_siren",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+	"name": "@invoice-app/config",
+	"version": "0.0.0",
+	"private": true,
+	"dependencies": {
+		"tailwindcss": "catalog:"
+	}
+}

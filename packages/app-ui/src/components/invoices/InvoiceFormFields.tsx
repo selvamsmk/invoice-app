@@ -2,6 +2,7 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldLabel, FieldMessage } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { DatePickerInput } from '@/components/ui/date-picker'
 import BuyerSelector from '@/components/invoices/BuyerSelector'
 import ProductSelector from '@/components/invoices/ProductSelector'
 import LineItems from '@/components/invoices/LineItems'
@@ -121,13 +122,12 @@ export default function InvoiceFormFields({
               {(field: any) => (
                 <Field>
                   <FieldLabel htmlFor={field.name}>Invoice Date *</FieldLabel>
-                  <Input
+                  <DatePickerInput
                     id={field.name}
-                    name={field.name}
-                    type="date"
                     value={field.state.value}
+                    onChange={(value) => field.handleChange(value)}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Select invoice date"
                   />
                   {!field.state.meta.isValid && (
                     <FieldMessage>{field.state.meta.errors.join(', ')}</FieldMessage>
@@ -140,13 +140,12 @@ export default function InvoiceFormFields({
               {(field: any) => (
                 <Field>
                   <FieldLabel htmlFor={field.name}>Due Date *</FieldLabel>
-                  <Input
+                  <DatePickerInput
                     id={field.name}
-                    name={field.name}
-                    type="date"
                     value={field.state.value}
+                    onChange={(value) => field.handleChange(value)}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Select due date"
                   />
                   {!field.state.meta.isValid && (
                     <FieldMessage>{field.state.meta.errors.join(', ')}</FieldMessage>

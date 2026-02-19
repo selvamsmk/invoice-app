@@ -6,14 +6,12 @@ import { Edit as EditIcon, Eye, FileText, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import BuyerSelector from "@/components/invoices/BuyerSelector";
-import InvoiceFormFields from "@/components/invoices/InvoiceFormFields";
-import InvoiceFormShell from "@/components/invoices/InvoiceFormShell";
 import InvoiceList from "@/components/invoices/InvoiceList";
 import LineItems from "@/components/invoices/LineItems";
 import ProductSelector from "@/components/invoices/ProductSelector";
 import { type Invoice, InvoicePreview } from "@/components/invoices/preview";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePickerInput } from "@/components/ui/date-picker";
 import { Field, FieldLabel, FieldMessage } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useBuyersProducts from "@/hooks/useBuyersProducts";
 import useInvoices from "@/hooks/useInvoices";
 import { formatCurrency, formatDate } from "@/lib/formatters";
+import InvoiceFormShell from "@/components/invoices/InvoiceFormShell";
 
 export const Route = createFileRoute("/app/invoices")({
 	component: Invoices,
@@ -915,13 +914,11 @@ function Invoices() {
 													<FieldLabel htmlFor={field.name}>
 														Invoice Date *
 													</FieldLabel>
-													<Input
+													<DatePickerInput
 														id={field.name}
-														name={field.name}
-														type="date"
 														value={field.state.value}
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(value) => field.handleChange(value)}
 													/>
 													{!field.state.meta.isValid && (
 														<FieldMessage>
@@ -936,13 +933,11 @@ function Invoices() {
 											{(field) => (
 												<Field>
 													<FieldLabel htmlFor={field.name}>Due Date</FieldLabel>
-													<Input
+													<DatePickerInput
 														id={field.name}
-														name={field.name}
-														type="date"
-														value={field.state.value}
+														value={field.state.value ?? ""}
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(value) => field.handleChange(value)}
 													/>
 												</Field>
 											)}
@@ -974,13 +969,11 @@ function Invoices() {
 													<FieldLabel htmlFor={field.name}>
 														DC Date
 													</FieldLabel>
-													<Input
+													<DatePickerInput
 														id={field.name}
-														name={field.name}
-														type="date"
-														value={field.state.value}
+														value={field.state.value ?? ""}
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(value) => field.handleChange(value)}
 													/>
 												</Field>
 											)}
@@ -1209,13 +1202,11 @@ function Invoices() {
 													<FieldLabel htmlFor={field.name}>
 														Invoice Date *
 													</FieldLabel>
-													<Input
+													<DatePickerInput
 														id={field.name}
-														name={field.name}
-														type="date"
 														value={field.state.value}
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(value) => field.handleChange(value)}
 													/>
 													{!field.state.meta.isValid && (
 														<FieldMessage>
@@ -1230,13 +1221,11 @@ function Invoices() {
 											{(field) => (
 												<Field>
 													<FieldLabel htmlFor={field.name}>Due Date</FieldLabel>
-													<Input
+													<DatePickerInput
 														id={field.name}
-														name={field.name}
-														type="date"
-														value={field.state.value}
+														value={field.state.value ?? ""}
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(value) => field.handleChange(value)}
 													/>
 												</Field>
 											)}
@@ -1268,13 +1257,11 @@ function Invoices() {
 													<FieldLabel htmlFor={field.name}>
 														DC Date
 													</FieldLabel>
-													<Input
+													<DatePickerInput
 														id={field.name}
-														name={field.name}
-														type="date"
-														value={field.state.value}
+														value={field.state.value ?? ""}
 														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
+														onChange={(value) => field.handleChange(value)}
 													/>
 												</Field>
 											)}

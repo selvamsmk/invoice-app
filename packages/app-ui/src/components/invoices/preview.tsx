@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { FileText, Download } from 'lucide-react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useAppContext } from '@/hooks/useAppContext'
+import Loader from '@/components/loader'
 
 export interface Invoice {
   id: string
@@ -40,6 +41,7 @@ interface InvoicePreviewProps {
 
 export function InvoicePreview({ selectedInvoice }: InvoicePreviewProps) {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const { orpc } = useAppContext();
 
@@ -56,6 +58,10 @@ export function InvoicePreview({ selectedInvoice }: InvoicePreviewProps) {
     let mounted = true
     async function fetchPreview() {
       if (!selectedInvoice || typeof window === 'undefined') return
+      
+      setIsLoadingPreview(true)
+      setPreviewUrl(null)
+      
       try {
         const resp = await renderPDFMutation.mutateAsync({ id: selectedInvoice.id })
         if (!resp || !resp.pdfBase64) return
@@ -68,8 +74,12 @@ export function InvoicePreview({ selectedInvoice }: InvoicePreviewProps) {
         const byteArray = new Uint8Array(byteNumbers)
         const blob = new Blob([byteArray], { type: 'application/pdf' })
         const url = URL.createObjectURL(blob)
-        if (mounted) setPreviewUrl(url)
+        if (mounted) {
+          setPreviewUrl(url)
+          setIsLoadingPreview(false)
+        }
       } catch (err) {
+        if (mounted) setIsLoadingPreview(false)
         // ignore preview errors
       }
     }
@@ -168,11 +178,22 @@ export function InvoicePreview({ selectedInvoice }: InvoicePreviewProps) {
       <div className="flex-1 overflow-hidden">
         {typeof window !== 'undefined' ? (
           <div className="w-full h-full">
-            <iframe
-              title="Invoice Preview"
-              src={previewUrl ?? '#'}
-              style={{ width: '100%', height: '100%', border: 'none' }}
-            />
+            {isLoadingPreview ? (
+              <Loader />
+            ) : previewUrl ? (
+              <iframe
+                title="Invoice Preview"
+                src={previewUrl}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+              />
+            ) : (
+              <Card className="flex items-center justify-center h-full">
+                <CardContent className="text-center">
+                  <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <CardDescription>Failed to load preview</CardDescription>
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : (
           <Card className="w-full h-full p-4 border">

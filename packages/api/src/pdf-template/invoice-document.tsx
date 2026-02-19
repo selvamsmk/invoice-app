@@ -5,7 +5,6 @@ import {
   capitalizeWords,
   formatCurrency,
   formatCurrencyPlain,
-  formatCurrencyRupees,
   formatDate,
   formatExpiry,
 } from '../utils/pdf-utils';
@@ -13,7 +12,13 @@ import { registerFonts } from '../utils/registerFonts';
 
 registerFonts();
 
-const CompanyLogoSvg = ({ width = 80, height = 80 }: { width?: number; height?: number }) => (
+// Font size constants for easy customization
+const FONT_SIZE_LARGE = 12;
+const FONT_SIZE_BASE = 9;
+const FONT_SIZE_SMALL = 9;
+const FONT_SIZE_TINY = 8;
+
+const CompanyLogoSvg = ({ width = 60, height = 60 }: { width?: number; height?: number }) => (
   <Svg
     width={width}
     height={height}
@@ -148,12 +153,6 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
           </View>
         </View>
 
-        {/* When the table continues on subsequent pages, add a small spacer
-        below the fixed header so the table doesn't sit flush against it. */}
-        <View fixed render={(arg) => {
-          return(arg.pageNumber > 1 ? <View style={pdfStyles.headerWrapSpacer} /> : null)
-        }} />
-
         {/* Products table */}
         <View style={[pdfStyles.sectionBlock, pdfStyles.itemsTableContainer]}>
           <View style={pdfStyles.itemsTable}>
@@ -161,19 +160,17 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
             <View style={[pdfStyles.itemsRow, pdfStyles.itemsHeaderRow]}>
               <Text style={[pdfStyles.itemsCell, pdfStyles.colSerial, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>S.No</Text>
               <Text style={[pdfStyles.itemsCell, pdfStyles.colItem, pdfStyles.itemsHeaderCell]}>Item</Text>
-              <Text style={[pdfStyles.itemsCell, pdfStyles.colHsn, pdfStyles.itemsHeaderCell]}>HSN</Text>
-              <Text style={[pdfStyles.itemsCell, pdfStyles.colBatches, pdfStyles.itemsHeaderCell]}>Batch No.</Text>
-              <Text style={[pdfStyles.itemsCell, pdfStyles.colExpiry, pdfStyles.itemsHeaderCell]}>Expiry</Text>
+              <Text style={[pdfStyles.itemsCell, pdfStyles.colHsn, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>HSN</Text>
+              <Text style={[pdfStyles.itemsCell, pdfStyles.colBatches, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>Batch No.</Text>
+              <Text style={[pdfStyles.itemsCell, pdfStyles.colExpiry, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>Expiry</Text>
               <Text style={[pdfStyles.itemsCell, pdfStyles.colQty, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>Qty</Text>
-              <Text style={[pdfStyles.itemsCell, pdfStyles.colRate, pdfStyles.itemsHeaderCell]}>Rate / unit</Text>
+              <Text style={[pdfStyles.itemsCell, pdfStyles.colRate, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>Rate / unit</Text>
               <Text style={[pdfStyles.itemsCell, pdfStyles.colTax, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>Tax</Text>
-              <Text style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast, pdfStyles.itemsHeaderCell]}>Amount</Text>
+              <Text style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast, pdfStyles.itemsHeaderCell, pdfStyles.cellPaddingNarrowX]}>Amount</Text>
             </View>
 
             {(selectedInvoice.lineItems && selectedInvoice.lineItems.length > 0) ? (
               (() => {
-                const totalQuantity = selectedInvoice.lineItems?.reduce((s, it) => s + (it.quantity ?? 0), 0) ?? 0
-
                 return (
                   <>
                     {selectedInvoice.lineItems!.map((item, idx) => {
@@ -191,34 +188,21 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
                     <View style={rowStyles} wrap={false}>
                       <Text style={[pdfStyles.itemsCell, pdfStyles.colSerial, pdfStyles.cellPaddingNarrowX, pdfStyles.textCenter]}>{idx + 1}</Text>
                       <Text style={[pdfStyles.itemsCell, pdfStyles.colItem]}>{item.name}</Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colHsn, pdfStyles.textCenter]}>{item.hsnCode ?? ''}</Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colBatches, pdfStyles.textCenter]}>
+                      <Text style={[pdfStyles.itemsCell, pdfStyles.colHsn, pdfStyles.textCenter, pdfStyles.cellPaddingNarrowX]}>{item.hsnCode ?? ''}</Text>
+                      <Text style={[pdfStyles.itemsCell, pdfStyles.colBatches, pdfStyles.textCenter, pdfStyles.cellPaddingNarrowX]}>
                         {validBatches.map((b) => b.batchNo).filter(Boolean).join("\n")}
                       </Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colExpiry, pdfStyles.textCenter]}>
+                      <Text style={[pdfStyles.itemsCell, pdfStyles.colExpiry, pdfStyles.textCenter, pdfStyles.cellPaddingNarrowX]}>
                         {validBatches.map((b) => formatExpiry(b.expiryDate ?? undefined)).filter(Boolean).join("\n")}
                       </Text>
                       <Text style={[pdfStyles.itemsCell, pdfStyles.colQty, pdfStyles.textCenter, pdfStyles.cellPaddingNarrowX]}>{item.quantity}</Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colRate, pdfStyles.textCenter]}>{formatCurrencyPlain(item.rate)}</Text>
+                      <Text style={[pdfStyles.itemsCell, pdfStyles.colRate, pdfStyles.textCenter, pdfStyles.cellPaddingNarrowX]}>{formatCurrencyPlain(item.rate)}</Text>
                       <Text style={[pdfStyles.itemsCell, pdfStyles.colTax, pdfStyles.textCenter, pdfStyles.cellPaddingNarrowX]}>{item.gstPercentage ?? 0}%</Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast, pdfStyles.textCenter]}>{formatCurrencyPlain(item.amount)}</Text>
+                      <Text style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast, pdfStyles.textRight, pdfStyles.cellPaddingNarrowX]}>{formatCurrencyPlain(item.amount)}</Text>
                     </View>
                     </View>
                     )
                     })}
-
-                    {/* Totals row (part of the products table) */}
-                    <View style={[pdfStyles.itemsRow, pdfStyles.itemsFooterRow]} wrap={false}>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colSerial, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colItem, pdfStyles.itemsFooterCell]}>{'Total'}</Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colHsn, pdfStyles.itemsFooterCell]}></Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colBatches, pdfStyles.itemsFooterCell]}></Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colExpiry, pdfStyles.itemsFooterCell]}></Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colQty, pdfStyles.textCenter, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}>{totalQuantity}</Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colRate, pdfStyles.textCenter, pdfStyles.itemsFooterCell]}></Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colTax, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
-                      <Text style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast, pdfStyles.textCenter, pdfStyles.itemsFooterCell]}>{formatCurrency(selectedInvoice.totalAmount)}</Text>
-                    </View>
                   </>
                 )
               })()
@@ -227,11 +211,41 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
                 <Text style={[pdfStyles.itemsCell, pdfStyles.colItem, { width: '100%' }]}>No line items</Text>
               </View>
             )}
+            
+            {/* Empty spacer row that grows to fill remaining space */}
+            <View style={pdfStyles.itemsSpacerRow}>
+              <View style={[pdfStyles.itemsCell, pdfStyles.colSerial]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colItem]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colHsn]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colBatches]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colExpiry]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colQty]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colRate]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colTax]} />
+              <View style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast]} />
+            </View>
           </View>
         </View>
         
         {/* Bottom summary: totals row, tax breakdown and amount-in-words together so they stay just above footer */}
         <View style={pdfStyles.summaryBlock} wrap={false}>
+          {/* Totals row */}
+          {(() => {
+            const totalQuantity = selectedInvoice.lineItems?.reduce((s, it) => s + (it.quantity ?? 0), 0) ?? 0
+            return (
+              <View style={[pdfStyles.itemsRow, pdfStyles.itemsFooterRow]} wrap={false}>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colSerial, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colItem, pdfStyles.itemsFooterCell]}>{'Total'}</Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colHsn, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colBatches, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colExpiry, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colQty, pdfStyles.textCenter, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}>{totalQuantity}</Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colRate, pdfStyles.textCenter, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colTax, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}></Text>
+                <Text style={[pdfStyles.itemsCell, pdfStyles.colAmount, pdfStyles.itemsCellLast, pdfStyles.textRight, pdfStyles.itemsFooterCell, pdfStyles.cellPaddingNarrowX]}>{formatCurrency(selectedInvoice.totalAmount)}</Text>
+              </View>
+            )
+          })()}
           {
             (() => {
               const items = selectedInvoice.lineItems || []
@@ -310,7 +324,7 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
         </View>
 
         {/* Fixed footer shown on every page */}
-        <View style={pdfStyles.footerRow}>
+        <View style={pdfStyles.footerRow} wrap={false}>
           <View style={pdfStyles.footerLeftColumn}>
             <View style={pdfStyles.bankRow}>
               <Text style={pdfStyles.bankLabel}>Bank</Text>
@@ -330,10 +344,19 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
             </View>
           </View>
 
+          <View style={pdfStyles.footerMiddleColumn} />
+
           <View style={pdfStyles.footerRightColumn}>
             <Text style={pdfStyles.footerLabel}>For {companyData?.companyName}</Text>
             <Text style={pdfStyles.footerLabel}>Authorized Signatory</Text>
           </View>
+        </View>
+
+        {/* Page footer with page number */}
+        <View style={pdfStyles.pageFooter} fixed>
+          <Text style={pdfStyles.pageNumber} render={({ pageNumber, totalPages }) => (
+            totalPages > 1 ? `${pageNumber} / ${totalPages}` : ''
+          )} />
         </View>
 
       </Page>
@@ -343,24 +366,24 @@ export function InvoiceDocument({ selectedInvoice, companyData }: InvoiceDocumen
 
 export const pdfStyles = StyleSheet.create({
   // Base
-  page: { padding: 24, fontSize: 12, fontFamily: 'OpenSans', fontWeight: 500, paddingBottom: 24 },
-  textSmall: { fontSize: 10 },
+  page: { padding: 12, fontSize: FONT_SIZE_BASE, fontFamily: 'OpenSans', fontWeight: 500, display: 'flex', flexDirection: 'column' },
+  textSmall: { fontSize: FONT_SIZE_SMALL },
   textCenter: { textAlign: 'center' },
   textRight: { textAlign: 'right' },
 
   // Header
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', width: "100%", alignItems: 'flex-start', marginBottom: 20, gap: 12 },
-  headerLeftGroup: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 20 },
-  logoBox: { width: 80, height: 80 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', width: "100%", alignItems: 'flex-start', marginBottom: 5, gap: 12 },
+  headerLeftGroup: { flex: 1, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: 10 },
+  logoBox: { width: 60, height: 60 },
   companyDetails: { textAlign: "left" },
-  company: { fontSize: 16, fontWeight: '700', textAlign: 'right' },
+  company: { fontSize: FONT_SIZE_LARGE, fontWeight: '700', textAlign: 'right' },
   invoiceInfo: { alignItems: 'flex-start' },
   invoiceTypeText: { fontWeight: 700 },
 
   // Top info block
-  sectionBlock: { marginBottom: 10 },
-  sectionTitle: { fontSize: 12, marginBottom: 4, fontWeight: 'bold' },
-  infoRow: { flexDirection: 'row', width: '100%', borderWidth: 1, borderColor: 'rgba(0,0,0,0)'},
+  sectionBlock: { marginBottom: 0 },
+  sectionTitle: { fontSize: FONT_SIZE_BASE, marginBottom: 4, fontWeight: 'bold' },
+  infoRow: { flexDirection: 'row', width: '100%', borderWidth: 1, borderColor: 'rgba(0,0,0,0)', borderBottomWidth: 1 },
   infoColumn: { width: "100%", padding: 6 },
   billToColumn: { borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0)' },
   invoiceMetaColumn: { flexDirection: 'column', justifyContent: 'flex-start' },
@@ -371,8 +394,8 @@ export const pdfStyles = StyleSheet.create({
   metaValue: { width: '50%', textAlign: 'left' },
 
   /* Table styles */
-  itemsTableContainer: { display: 'flex', flexDirection: 'column', paddingBottom: 0 },
-  itemsTable: { width: '100%', borderColor: 'rgba(0,0,0,0)', marginTop: 8 },
+  itemsTableContainer: { display: 'flex', flexDirection: 'column', paddingBottom: 0, marginTop: 0, flexGrow: 1 },
+  itemsTable: { width: '100%', borderColor: 'rgba(0,0,0,0)', marginTop: 0, borderTopWidth: 0, display: 'flex', flexDirection: 'column', flex: 1 },
   itemsRow: {
     flexDirection: 'row',
     borderColor: 'rgba(0,0,0,0.12)',
@@ -380,24 +403,25 @@ export const pdfStyles = StyleSheet.create({
     borderLeftWidth: 1,
     // Keep both top and bottom borders so a row that starts a new page
     // still shows a visible border at its top.
-    borderTopWidth: 0.5,
-    borderBottomWidth: 0.5
+    borderTopWidth: 0,
+    borderBottomWidth: 0
   },
-  itemsHeaderRow: { backgroundColor: 'rgba(0,0,0,0)', fontWeight: 'bold', borderTopWidth: 1 },
-  itemsCell: { padding: 4, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)', fontSize: 9 },
+  itemsHeaderRow: { backgroundColor: 'rgba(0,0,0,0)', fontWeight: 'bold', borderTopWidth: 0, borderBottomWidth: 1 },
+  itemsCell: { paddingTop: 2, paddingBottom: 2, paddingRight: 1, paddingLeft: 2, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)', fontSize: FONT_SIZE_TINY },
   itemsHeaderCell: { textAlign: 'center', fontWeight: 'bold' },
   itemsCellLast: { borderRightWidth: 0 },
-  cellPaddingNarrowX: { paddingLeft: 2, paddingRight: 2 },
-  colSerial: { width: '6%' },
-  colItem: { width: '22%' },
-  colHsn: { width: '10%' },
-  colExpiry: { width: '12%' },
-  colBatches: { width: '12%' },
-  colQty: { width: '7%' },
-  colRate: { width: '12%' },
-  colTax: { width: '7%' },
-  colAmount: { width: '12%' },
+  cellPaddingNarrowX: { paddingLeft: 1, paddingRight: 1 },
+  colSerial: { width: '4%' },
+  colItem: { width: '35%' },
+  colHsn: { width: '9%' },
+  colExpiry: { width: '11%' },
+  colBatches: { width: '11%' },
+  colQty: { width: '5%' },
+  colRate: { width: '10%' },
+  colTax: { width: '5%' },
+  colAmount: { width: '10%' },
   itemsRowNoBorder: { borderLeftWidth: 1, borderRightWidth: 1, borderTopWidth: 0, borderBottomWidth: 0 },
+  itemsSpacerRow: { flexGrow: 1, flexDirection: 'row', borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
   // Footer
   footerRow: {
     flexDirection: 'row',
@@ -409,21 +433,23 @@ export const pdfStyles = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 8,
     backgroundColor: 'white',
+    borderTopWidth: 0,
     fontWeight: 600
   },
-  footerLeftColumn: { width: '50%', paddingLeft: 8, paddingRight: 8, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)', paddingTop: 8, paddingBottom: 8 },
-  footerRightColumn: { width: '50%', alignItems: 'center', justifyContent: "space-between", paddingLeft: 8, paddingRight: 8, borderRightWidth: 0, paddingTop: 8, paddingBottom: 8 },
-  footerLabel: { fontSize: 10, textAlign: 'center', textTransform: 'uppercase' },
-  bankRow: { flexDirection: 'row', marginBottom: 2 },
-  bankLabel: { width: '28%', fontSize: 10, color: 'rgba(0,0,0,0.8)', textTransform: 'uppercase' },
-  bankValue: { flex: 1, fontSize: 10, textTransform: 'uppercase' },
-  itemsFooterRow: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0)', marginTop: 0, paddingTop: 0 },
+  footerLeftColumn: { width: '35%', paddingLeft: 8, paddingRight: 4, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)', paddingTop: 8, paddingBottom: 8 },
+  footerMiddleColumn: { width: '30%', paddingLeft: 8, paddingRight: 8, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)', paddingTop: 8, paddingBottom: 8 },
+  footerRightColumn: { width: '35%', alignItems: 'center', justifyContent: "space-between", paddingLeft: 8, paddingRight: 8, borderRightWidth: 0, paddingTop: 8, paddingBottom: 8 },
+  footerLabel: { fontSize: FONT_SIZE_SMALL, textAlign: 'center', textTransform: 'uppercase' },
+  bankRow: { flexDirection: 'row', marginBottom: 2, gap: 4 },
+  bankLabel: { width: '28%', fontSize: FONT_SIZE_SMALL, color: 'rgba(0,0,0,0.8)', textTransform: 'uppercase' },
+  bankValue: { flex: 1, fontSize: FONT_SIZE_SMALL, textTransform: 'uppercase' },
+  itemsFooterRow: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0)', marginTop: 0, paddingTop: 0, borderBottomWidth: 1 },
   itemsFooterCell: { fontWeight: 'bold', textTransform: 'uppercase' },
   /* Tax breakdown table */
   // Tax table
-  taxTableBlock: { width: '100%', marginTop: 8 },
+  taxTableBlock: { width: '100%', marginTop: 0 },
   taxRow: { flexDirection: 'row', alignItems: 'center', borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1, justifyContent: "center" },
-  taxCell: { padding: 4, fontSize: 9, borderRightColor: 'rgba(0,0,0,0.12)', textAlign: "center", justifyContent: "center", height: "100%" },
+  taxCell: { padding: 4, fontSize: FONT_SIZE_TINY, borderRightColor: 'rgba(0,0,0,0.12)', textAlign: "center", justifyContent: "center", height: "100%" },
   borderRight: { borderRightWidth: 1 },
   taxColTaxable: { width: '22%' },
   taxSplitHeader: { width: '100%', flexDirection: 'row', alignItems: 'center', borderTopWidth: 1 },
@@ -431,23 +457,27 @@ export const pdfStyles = StyleSheet.create({
   taxTwoRowHeader: { display: "flex", width: "28%", flexDirection: "column", padding: 0},
   taxSplitRow: { width: '28%', flexDirection: 'row', alignItems: 'center', padding: 0, justifyContent: "center" },
   // Sub-header small (percent) and large (rate) — give percent less flex so it appears narrower
-  taxHeaderPercent: { fontSize: 9, textAlign: 'center', flex: 0.6, padding: 2, paddingRight: 4 },
-  taxHeaderAmount: { fontSize: 9, textAlign: 'center', flex: 1.4, padding: 2, paddingRight: 4 },
+  taxHeaderPercent: { fontSize: FONT_SIZE_TINY, textAlign: 'center', flex: 0.6, padding: 2, paddingRight: 4 },
+  taxHeaderAmount: { fontSize: FONT_SIZE_TINY, textAlign: 'center', flex: 1.4, padding: 2, paddingRight: 4 },
   // Sub-cell small (percent) and large (amount) — align numbers to right
-  taxValuePercent: { fontSize: 9, flex: 0.6, width: "100%", textAlign: "right", paddingRight: 5, height: "100%", paddingTop: 4 },
-  taxValueAmount: { fontSize: 9, flex: 1.4, width: "100%", textAlign: "right", paddingRight: 4, height: "100%", paddingTop: 4 },
+  taxValuePercent: { fontSize: FONT_SIZE_TINY, flex: 0.6, width: "100%", textAlign: "right", paddingRight: 5, height: "100%", paddingTop: 4 },
+  taxValueAmount: { fontSize: FONT_SIZE_TINY, flex: 1.4, width: "100%", textAlign: "right", paddingRight: 4, height: "100%", paddingTop: 4 },
   taxColTotal: { width: '26%', fontWeight: 'bold' },
   taxSummaryRow: { paddingTop: 6, paddingBottom: 6, paddingRight: 4, width: '100%', borderBottomWidth: 1, borderLeftWidth: 1, borderRightWidth: 1 },
-  taxSummaryText: { textAlign: 'right', width: '100%', fontSize: 9, fontWeight: 'bold' },
+  taxSummaryText: { textAlign: 'right', width: '100%', fontSize: FONT_SIZE_TINY, fontWeight: 'bold' },
   /* Amount in words table */
-  amountWordsTable: { width: '100%', marginTop: 8, paddingBottom: 0 },
-  amountWordsRow: { flexDirection: 'row', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)' },
+  amountWordsTable: { width: '100%', marginTop: 0, paddingBottom: 0 },
+  amountWordsRow: { flexDirection: 'row', borderWidth: 1, borderColor: 'rgba(0,0,0,0.12)', borderTopWidth: 0 },
   amountWordsLabelCell: { width: '25%', padding: 8, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)', justifyContent: 'center' },
   amountWordsValueCell: { width: '75%', padding: 8, justifyContent: 'center' },
-  amountWordsLabelText: { fontSize: 10, fontWeight: 'bold' },
-  amountWordsValueText: { fontSize: 10 },
+  amountWordsLabelText: { fontSize: FONT_SIZE_SMALL, fontWeight: 'bold' },
+  amountWordsValueText: { fontSize: FONT_SIZE_SMALL },
   // Summary block
-  summaryBlock: { width: '100%', marginTop: 8 },
+  summaryBlock: { width: '100%', marginTop: 0 },
+
+  // Page footer
+  pageFooter: { borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,1)', paddingTop: 4, paddingBottom: 4, paddingRight: 8, flexDirection: 'row', justifyContent: 'flex-end' },
+  pageNumber: { fontSize: FONT_SIZE_TINY, textAlign: 'right' },
 
   // Spacer inserted below fixed header on wrapped pages
   headerWrapSpacer: { height: 12 }

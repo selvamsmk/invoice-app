@@ -2,6 +2,8 @@
 
 A full-stack invoice management system with web and desktop apps. Built with modern TypeScript tools including React, TanStack Router, Elysia, oRPC, and Tauri.
 
+![Invoice App Demo](./assets/invoice-app-demo.gif)
+
 ## Features
 
 ### Core Functionality

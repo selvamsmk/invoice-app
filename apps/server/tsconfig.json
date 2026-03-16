@@ -1,34 +1,34 @@
 {
-  "extends": "@invoice-app/config/tsconfig.base.json",
-  "compilerOptions": {
-    /* Project setup */
-    "composite": true,
-    "outDir": "dist",
+	"extends": "@invoice-app/config/tsconfig.base.json",
+	"compilerOptions": {
+		/* Project setup */
+		"composite": true,
+		"outDir": "dist",
 
-    /* Module resolution for Bun */
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+		/* Module resolution for Bun */
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 
-    /* React (server-side, no DOM) */
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
+		/* React (server-side, no DOM) */
+		"jsx": "react-jsx",
+		"jsxImportSource": "react",
 
-    /* Environment */
-    "types": ["@types/bun"],
-    "lib": ["ES2022"],
+		/* Environment */
+		"types": ["@types/bun"],
+		"lib": ["ES2022"],
 
-    /* Paths */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
+		/* Paths */
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"]
+		},
 
-    /* Safety */
-    "strict": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "isolatedModules": true
-  },
-  "include": ["src"]
+		/* Safety */
+		"strict": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
+		"isolatedModules": true
+	},
+	"include": ["src"]
 }

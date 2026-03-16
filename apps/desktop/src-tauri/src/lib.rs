@@ -46,6 +46,7 @@ pub fn run() {
                 .path()
                 .app_data_dir()
                 .expect("failed to get app data dir");
+
             std::fs::create_dir_all(&app_data_dir)?;
 
             let db_path = app_data_dir.join("invoice.db");
@@ -60,12 +61,10 @@ pub fn run() {
                 .expect("failed to get resource dir");
 
             let migrations_dir = resource_dir.join("resources/migrations");
+            let fonts_dir = resource_dir.join("resources/fonts");
 
             println!("📦 Resource dir: {:?}", resource_dir);
             println!("📂 Migrations dir: {:?}", migrations_dir);
-
-            let fonts_dir = resource_dir.join("resources/fonts");
-
             println!("🔤 Fonts dir: {:?}", fonts_dir);
 
             // ⛔ DEV MODE: do NOT spawn sidecar
@@ -73,6 +72,27 @@ pub fn run() {
                 println!("🧪 DEV mode → skipping sidecar (use external bun server)");
                 return Ok(());
             }
+
+            // --- Check resource files exist ---
+            if !migrations_dir.exists() {
+                eprintln!("❌ Migrations directory not found: {:?}", migrations_dir);
+                handle
+                    .emit("sidecar:error", "Migrations not bundled. Try rebuilding the app.")
+                    .ok();
+                return Ok(());
+            }
+
+            if !fonts_dir.exists() {
+                eprintln!("⚠️  Fonts directory not found: {:?}", fonts_dir);
+            }
+
+            println!("✅ Resources verified");
+
+            let db_path_env = db_path.to_string_lossy().to_string();
+            let migrations_dir_env = migrations_dir.to_string_lossy().to_string();
+            let fonts_dir_env = fonts_dir.to_string_lossy().to_string();
+
+            println!("🔧 Sidecar env DATABASE_URL={}", db_path_env);
 
             // --- Resolve sidecar ---
             let sidecar = match handle.shell().sidecar("server") {
@@ -82,36 +102,33 @@ pub fn run() {
                 }
                 Err(e) => {
                     eprintln!("❌ Sidecar resolve failed: {:?}", e);
-                    handle
-                        .emit("sidecar:error", format!("resolve failed: {e:?}"))
-                        .ok();
+                    let err_msg = format!("Sidecar binary not found. Make sure to run: bun run build:tauri:prep. Error: {e:?}");
+                    handle.emit("sidecar:error", err_msg.clone()).ok();
                     return Ok(());
                 }
             }
-            .envs([
-                ("BETTER_AUTH_URL", "http://localhost:3000"),
-                ("CORS_ORIGIN", "http://localhost:3001,http://localhost:1420"),
-                ("ENV", "production"),
-                ("SEED", "false"),
-                ("DATABASE_URL", &db_path.to_string_lossy()),
-                ("MIGRATIONS_DIR", &migrations_dir.to_string_lossy()),
-                ("FONTS_DIR", &fonts_dir.to_string_lossy()),
-                ("VITE_DISABLE_AUTH", "true"),
-                ("TARGET", "desktop"),
-            ]);
+            .env("BETTER_AUTH_URL", "http://localhost:3000")
+            .env("CORS_ORIGIN", "http://localhost:3001,http://localhost:1420")
+            .env("ENV", "production")
+            .env("SEED", "false")
+            .env("DATABASE_URL", db_path_env)
+            .env("MIGRATIONS_DIR", migrations_dir_env)
+            .env("FONTS_DIR", fonts_dir_env)
+            .env("VITE_DISABLE_AUTH", "true")
+            .env("TARGET", "desktop");
 
             // --- Spawn sidecar ---
             let (mut rx, child) = match sidecar.spawn() {
                 Ok(pair) => {
-                    println!("🚀 Server sidecar spawned");
+                    println!("🚀 Server sidecar spawned (PID: {:?})", pair.1.pid());
                     handle.emit("sidecar:status", "started").ok();
                     pair
                 }
                 Err(e) => {
                     eprintln!("❌ Sidecar spawn failed: {:?}", e);
-                    handle
-                        .emit("sidecar:error", format!("spawn failed: {e:?}"))
-                        .ok();
+                    let err_msg = format!("SPAWN_FAILED: {e:?}");
+                    handle.emit("sidecar:error", err_msg.clone()).ok();
+                    eprintln!("💥 {}", err_msg);
                     return Ok(());
                 }
             };
@@ -119,28 +136,67 @@ pub fn run() {
             // Store child globally
             SERVER_CHILD.set(Arc::new(Mutex::new(Some(child)))).ok();
 
-            // --- Pipe logs ---
+            // --- Pipe logs & detect startup ---
             let app_handle = handle.clone();
             tauri::async_runtime::spawn(async move {
-                while let Some(event) = rx.recv().await {
-                    match event {
-                        CommandEvent::Stdout(bytes) => {
-                            let msg = String::from_utf8_lossy(&bytes).trim().to_string();
-                            println!("[server] {}", msg);
-                            app_handle.emit("sidecar:stdout", msg).ok();
+                let mut startup_complete = false;
+                let mut startup_started = false;
+                
+                let startup_result = tokio::time::timeout(
+                    tokio::time::Duration::from_secs(15),
+                    async {
+                        while let Some(event) = rx.recv().await {
+                            match event {
+                                CommandEvent::Stdout(bytes) => {
+                                    let msg = String::from_utf8_lossy(&bytes).trim().to_string();
+                                    if !msg.is_empty() {
+                                        println!("[server] {}", msg);
+                                        app_handle.emit("sidecar:stdout", msg.clone()).ok();
+                                        startup_started = true;
+                                        
+                                        // Detect successful startup
+                                        if msg.contains("Server running") || msg.contains("listening") || msg.contains("🚀") {
+                                            startup_complete = true;
+                                            app_handle.emit("sidecar:status", "healthy").ok();
+                                            println!("✅ Sidecar is healthy and listening");
+                                            return;
+                                        }
+                                    }
+                                }
+                                CommandEvent::Stderr(bytes) => {
+                                    let msg = String::from_utf8_lossy(&bytes).trim().to_string();
+                                    if !msg.is_empty() {
+                                        eprintln!("[server] {}", msg);
+                                        app_handle.emit("sidecar:stderr", msg.clone()).ok();
+                                    }
+                                }
+                                CommandEvent::Terminated(payload) => {
+                                    eprintln!("🛑 Sidecar exited (code: {:?})", payload.code);
+                                    if !startup_complete {
+                                        let err = if startup_started {
+                                            format!("Sidecar crashed during startup. Check logs above. Exit code: {:?}", payload.code)
+                                        } else {
+                                            format!("Sidecar failed to start (no output). Exit code: {:?}. Check database permissions and port 3000 availability.", payload.code)
+                                        };
+                                        app_handle.emit("sidecar:error", err).ok();
+                                    } else {
+                                        app_handle.emit("sidecar:terminated", format!("{payload:?}")).ok();
+                                    }
+                                    return;
+                                }
+                                _ => {}
+                            }
                         }
-                        CommandEvent::Stderr(bytes) => {
-                            let msg = String::from_utf8_lossy(&bytes).trim().to_string();
-                            eprintln!("[server] {}", msg);
-                            app_handle.emit("sidecar:stderr", msg).ok();
-                        }
-                        CommandEvent::Terminated(payload) => {
-                            eprintln!("🛑 Sidecar exited: {:?}", payload);
-                            app_handle
-                                .emit("sidecar:terminated", format!("{payload:?}"))
-                                .ok();
-                        }
-                        _ => {}
+                    }
+                ).await;
+                
+                if startup_result.is_err() {
+                    if !startup_complete && startup_started {
+                        eprintln!("⚠️  Sidecar startup timeout (15s) - may still be initializing");
+                        app_handle.emit("sidecar:status", "slow-startup").ok();
+                    } else if !startup_started {
+                        eprintln!("❌ Sidecar produced no output for 15s - likely crashed immediately");
+                        app_handle.emit("sidecar:error", "Sidecar produced no startup output. Check database file and permissions.".to_string()).ok();
                     }
                 }
             });

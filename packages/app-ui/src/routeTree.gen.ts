@@ -13,9 +13,11 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppStentInvoicesRouteImport } from './routes/app/stent-invoices'
 import { Route as AppProductsRouteImport } from './routes/app/products'
 import { Route as AppMyDetailsRouteImport } from './routes/app/my-details'
 import { Route as AppInvoicesRouteImport } from './routes/app/invoices'
+import { Route as AppDeliveryChallansRouteImport } from './routes/app/delivery-challans'
 import { Route as AppDashboardRouteImport } from './routes/app/dashboard'
 import { Route as AppBuyersRouteImport } from './routes/app/buyers'
 
@@ -39,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppStentInvoicesRoute = AppStentInvoicesRouteImport.update({
+  id: '/stent-invoices',
+  path: '/stent-invoices',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppProductsRoute = AppProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -52,6 +59,11 @@ const AppMyDetailsRoute = AppMyDetailsRouteImport.update({
 const AppInvoicesRoute = AppInvoicesRouteImport.update({
   id: '/invoices',
   path: '/invoices',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppDeliveryChallansRoute = AppDeliveryChallansRouteImport.update({
+  id: '/delivery-challans',
+  path: '/delivery-challans',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -72,9 +84,11 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/app/buyers': typeof AppBuyersRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/delivery-challans': typeof AppDeliveryChallansRoute
   '/app/invoices': typeof AppInvoicesRoute
   '/app/my-details': typeof AppMyDetailsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/stent-invoices': typeof AppStentInvoicesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +97,11 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/app/buyers': typeof AppBuyersRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/delivery-challans': typeof AppDeliveryChallansRoute
   '/app/invoices': typeof AppInvoicesRoute
   '/app/my-details': typeof AppMyDetailsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/stent-invoices': typeof AppStentInvoicesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +111,11 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/app/buyers': typeof AppBuyersRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/delivery-challans': typeof AppDeliveryChallansRoute
   '/app/invoices': typeof AppInvoicesRoute
   '/app/my-details': typeof AppMyDetailsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/stent-invoices': typeof AppStentInvoicesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,9 +126,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/buyers'
     | '/app/dashboard'
+    | '/app/delivery-challans'
     | '/app/invoices'
     | '/app/my-details'
     | '/app/products'
+    | '/app/stent-invoices'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,9 +139,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/buyers'
     | '/app/dashboard'
+    | '/app/delivery-challans'
     | '/app/invoices'
     | '/app/my-details'
     | '/app/products'
+    | '/app/stent-invoices'
   id:
     | '__root__'
     | '/'
@@ -130,9 +152,11 @@ export interface FileRouteTypes {
     | '/login'
     | '/app/buyers'
     | '/app/dashboard'
+    | '/app/delivery-challans'
     | '/app/invoices'
     | '/app/my-details'
     | '/app/products'
+    | '/app/stent-invoices'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -172,6 +196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/stent-invoices': {
+      id: '/app/stent-invoices'
+      path: '/stent-invoices'
+      fullPath: '/app/stent-invoices'
+      preLoaderRoute: typeof AppStentInvoicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/app/products': {
       id: '/app/products'
       path: '/products'
@@ -191,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/invoices'
       fullPath: '/app/invoices'
       preLoaderRoute: typeof AppInvoicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/delivery-challans': {
+      id: '/app/delivery-challans'
+      path: '/delivery-challans'
+      fullPath: '/app/delivery-challans'
+      preLoaderRoute: typeof AppDeliveryChallansRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/dashboard': {
@@ -213,17 +251,21 @@ declare module '@tanstack/react-router' {
 interface AppRouteRouteChildren {
   AppBuyersRoute: typeof AppBuyersRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDeliveryChallansRoute: typeof AppDeliveryChallansRoute
   AppInvoicesRoute: typeof AppInvoicesRoute
   AppMyDetailsRoute: typeof AppMyDetailsRoute
   AppProductsRoute: typeof AppProductsRoute
+  AppStentInvoicesRoute: typeof AppStentInvoicesRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppBuyersRoute: AppBuyersRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppDeliveryChallansRoute: AppDeliveryChallansRoute,
   AppInvoicesRoute: AppInvoicesRoute,
   AppMyDetailsRoute: AppMyDetailsRoute,
   AppProductsRoute: AppProductsRoute,
+  AppStentInvoicesRoute: AppStentInvoicesRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

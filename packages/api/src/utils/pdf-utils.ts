@@ -12,12 +12,16 @@ export const formatCurrencyIntl = (amount?: number | null, isPaise = true) => {
 };
 
 // Treat values as rupees by default (no paise -> rupee division)
-export const formatCurrency = (amount: number) => formatCurrencyIntl(amount, false);
+export const formatCurrency = (amount: number) =>
+	formatCurrencyIntl(amount, false);
 
 export const formatCurrencyRupees = (amount: number) =>
 	formatCurrencyIntl(amount, false);
 
-export const formatCurrencyPlain = (amount?: number | null, isPaise = false) => {
+export const formatCurrencyPlain = (
+	amount?: number | null,
+	isPaise = false,
+) => {
 	const raw = typeof amount === "number" && !Number.isNaN(amount) ? amount : 0;
 	const value = isPaise ? raw / 100 : raw;
 	const rounded = Math.ceil(value);

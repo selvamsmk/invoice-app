@@ -1,27 +1,31 @@
-import { protectedProcedure, publicProcedure } from "../index";
 import type { RouterClient } from "@orpc/server";
+import { protectedProcedure, publicProcedure } from "../index";
 import { buyersRouter } from "./buyers";
-import { productsRouter } from "./products";
 import { companyRouter } from "./company";
-import { invoicesRouter } from "./invoices";
 import { dashboardRouter } from "./dashboard";
+import { deliveryChallansRouter } from "./delivery-challans";
+import { invoicesRouter } from "./invoices";
+import { productsRouter } from "./products";
+import { stentInvoicesRouter } from "./stent-invoices";
 
 export const appRouter = {
-  healthCheck: publicProcedure.handler(() => {
-    return "OK";
-  }),
-  privateData: protectedProcedure.handler(({ context }) => {
-    return {
-      message: "This is private",
-      user: context.session?.user,
-    };
-  }),
-  // Spread module routers
-  ...buyersRouter,
-  ...productsRouter,
-  ...companyRouter,
-  ...invoicesRouter,
-  ...dashboardRouter,
+	healthCheck: publicProcedure.handler(() => {
+		return "OK";
+	}),
+	privateData: protectedProcedure.handler(({ context }) => {
+		return {
+			message: "This is private",
+			user: context.session?.user,
+		};
+	}),
+	// Spread module routers
+	...buyersRouter,
+	...productsRouter,
+	...companyRouter,
+	...invoicesRouter,
+	...stentInvoicesRouter,
+	...deliveryChallansRouter,
+	...dashboardRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

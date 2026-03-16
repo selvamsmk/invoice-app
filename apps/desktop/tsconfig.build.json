@@ -1,23 +1,20 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
 
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["../../packages/app-ui/src/*"]
-    }
-  },
-  "include": [
-    "src",
-    "../../packages/app-ui/src"
-  ],
-  "exclude": [
-    "../../packages/api",
-    "../../packages/db",
-    "../../packages/config",
-    "**/*.test.ts",
-    "**/*.spec.ts"
-  ]
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["../../packages/app-ui/src/*"]
+		}
+	},
+	"include": ["src", "../../packages/app-ui/src"],
+	"exclude": [
+		"../../packages/api",
+		"../../packages/db",
+		"../../packages/config",
+		"**/*.test.ts",
+		"**/*.spec.ts"
+	]
 }

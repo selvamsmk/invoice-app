@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const buyer = sqliteTable(
 	"buyer",
@@ -27,7 +27,5 @@ export const buyer = sqliteTable(
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
 	},
-	(table) => [
-		index("buyer_gstin_idx").on(table.gstin),
-	],
+	(table) => [index("buyer_gstin_idx").on(table.gstin)],
 );

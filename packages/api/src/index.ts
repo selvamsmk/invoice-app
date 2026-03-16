@@ -1,7 +1,14 @@
+import type {
+	buyer,
+	company,
+	deliveryChallan,
+	invoice,
+	product,
+	stentInvoice,
+} from "@invoice-app/db";
 import { ORPCError, os } from "@orpc/server";
 import type { Context } from "./context";
-import { buyer, product, company, invoice } from "@invoice-app/db";
-import type { AppRouterClient } from './routers'
+import type { AppRouterClient } from "./routers";
 
 export const o = os.$context<Context>();
 
@@ -25,4 +32,6 @@ export type Buyer = typeof buyer.$inferSelect;
 export type Product = typeof product.$inferSelect;
 export type Company = typeof company.$inferSelect;
 export type Invoice = typeof invoice.$inferSelect;
+export type StentInvoice = typeof stentInvoice.$inferSelect;
+export type DeliveryChallan = typeof deliveryChallan.$inferSelect;
 export type { AppRouterClient };

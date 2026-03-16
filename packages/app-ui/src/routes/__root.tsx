@@ -1,15 +1,15 @@
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import type { AppRouterClient } from "@invoice-app/api/routers/index";
+import type { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { createTanstackQueryUtils } from "@orpc/tanstack-query"
 import {
+	createRootRouteWithContext,
 	HeadContent,
 	Outlet,
-	createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import type { AppRouterClient } from "@invoice-app/api/routers/index";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 import "../index.css";
 
@@ -31,15 +31,13 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 			},
 		],
 		links:
-				import.meta.env.MODE === "web"
-					? [{ rel: "icon", href: "/favicon.ico" }]
-					: [],
-
+			import.meta.env.MODE === "web"
+				? [{ rel: "icon", href: "/favicon.ico" }]
+				: [],
 	}),
 });
 
 function RootComponent() {
-
 	return (
 		<>
 			<HeadContent />

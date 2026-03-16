@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-APP_NAME="VMT Invoice App (Alpha)"
+APP_NAME="VMT Invoice App"
+VERSION="1.0.0"
+
 ARCH="$(uname -m)"
 RELEASE_DIR="release"
-ZIP_NAME="VMT-Invoice-App-Alpha-macos-${ARCH}.zip"
+
+ZIP_NAME="vmt-invoice-app-${VERSION}-macos-${ARCH}.zip"
 
 BUNDLE_PATH="apps/desktop/src-tauri/target/release/bundle/macos"
 APP_PATH="$BUNDLE_PATH/$APP_NAME.app"
@@ -17,17 +20,19 @@ chmod +x "$APP_PATH/Contents/MacOS/"*
 echo "▶ Clearing extended attributes"
 xattr -cr "$APP_PATH"
 
-echo "▶ Ad-hoc code signing (.app)"
+echo "▶ Ad-hoc code signing"
 codesign --force --deep --sign - "$APP_PATH"
 
-echo "▶ Verifying code signature"
+echo "▶ Verifying signature"
 codesign --verify --deep --strict "$APP_PATH"
 
-echo "▶ Creating ZIP"
+echo "▶ Creating distributable ZIP"
 rm -f "$RELEASE_DIR/$ZIP_NAME"
+
 ditto -c -k --sequesterRsrc --keepParent \
   "$APP_PATH" \
   "$RELEASE_DIR/$ZIP_NAME"
 
-echo "✅ macOS alpha release ready:"
+echo ""
+echo "✅ Release created"
 echo "📦 $RELEASE_DIR/$ZIP_NAME"

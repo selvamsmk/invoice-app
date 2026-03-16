@@ -10,13 +10,11 @@ const outDir = path.join(root, "apps/desktop/src-tauri/bin");
 fs.mkdirSync(outDir, { recursive: true });
 
 // get target triple
-const target = execSync("rustc --print host-tuple")
-  .toString()
-  .trim();
+const target = execSync("rustc --print host-tuple").toString().trim();
 
 if (!target) {
-  console.error("❌ Failed to determine Rust target triple");
-  process.exit(1);
+	console.error("❌ Failed to determine Rust target triple");
+	process.exit(1);
 }
 
 const extension = process.platform === "win32" ? ".exe" : "";
@@ -26,16 +24,16 @@ const outPath = path.join(outDir, outFile);
 console.log(`📦 Building server sidecar for ${target}`);
 
 execSync(
-  `bun build --compile --minify --bytecode ${serverSrc} --outfile ${outPath}`,
-  { stdio: "inherit" }
+	`bun build --compile --minify --bytecode ${serverSrc} --outfile ${outPath}`,
+	{ stdio: "inherit" },
 );
 
 console.log(`✅ Sidecar built: ${outPath}`);
 
 const migrationsSrc = path.join(root, "apps/server/migrations");
 const resourcesDir = path.join(
-  root,
-  "apps/desktop/src-tauri/resources/migrations"
+	root,
+	"apps/desktop/src-tauri/resources/migrations",
 );
 
 fs.rmSync(resourcesDir, { recursive: true, force: true });

@@ -1,25 +1,21 @@
 import type { Buyer, Product } from "@invoice-app/api";
 import { useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useDragAndDrop } from "fluid-dnd/react";
-import { Edit as EditIcon, Eye, FileText, Plus } from "lucide-react";
+import { Edit as EditIcon, Eye, FileText, Plus, List } from "lucide-react";
 import { useEffect, useState } from "react";
-import { z } from "zod";
-import BuyerSelector from "@/components/invoices/BuyerSelector";
+import { toast } from "sonner";
+import InvoiceFormFields from "@/components/invoices/InvoiceFormFields";
+import InvoiceFormShell from "@/components/invoices/InvoiceFormShell";
 import InvoiceList from "@/components/invoices/InvoiceList";
-import LineItems from "@/components/invoices/LineItems";
-import ProductSelector from "@/components/invoices/ProductSelector";
 import { type Invoice, InvoicePreview } from "@/components/invoices/preview";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePickerInput } from "@/components/ui/date-picker";
-import { Field, FieldLabel, FieldMessage } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Table, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAppContext } from "@/hooks/useAppContext";
 import useBuyersProducts from "@/hooks/useBuyersProducts";
 import useInvoices from "@/hooks/useInvoices";
 import { formatCurrency, formatDate } from "@/lib/formatters";
-import InvoiceFormShell from "@/components/invoices/InvoiceFormShell";
 
 export const Route = createFileRoute("/app/invoices")({
 	component: Invoices,
@@ -184,6 +180,7 @@ type InvoicePayload = {
 
 function Invoices() {
 	const [invoices, setInvoices] = useState<Invoice[]>([]);
+	const { orpc } = useAppContext();
 
 	const {
 		list: invoicesQuery,
@@ -192,10 +189,14 @@ function Invoices() {
 		remove: deleteInvoiceMutation,
 	} = useInvoices();
 
+	// Add renderPDF mutation
+	const renderPDFMutation = useMutation(orpc.renderPDF.mutationOptions());
+
 	useEffect(() => {
 		if (invoicesQuery.data) {
 			// Normalize invoices and line items into the shape used by the preview/pdf components
-			const rawInvoices = (invoicesQuery.data ?? []) as unknown as InvoiceSource[];
+			const rawInvoices = (invoicesQuery.data ??
+				[]) as unknown as InvoiceSource[];
 			const normalized = rawInvoices.map((inv) => {
 				const rawLineItems = inv.lineItems ?? [];
 				const lineItems = rawLineItems.map((li) => {
@@ -253,7 +254,8 @@ function Invoices() {
 
 	const handleEditInvoice = (invoice: Invoice) => {
 		// Try to find raw invoice from query data (includes batches)
-		const rawInvoices = (invoicesQuery.data ?? []) as unknown as InvoiceSource[];
+		const rawInvoices = (invoicesQuery.data ??
+			[]) as unknown as InvoiceSource[];
 		const raw =
 			rawInvoices.find((i) => i.id === invoice.id) ??
 			(invoice as InvoiceSource);
@@ -353,14 +355,15 @@ function Invoices() {
 	};
 
 	const handleDeleteInvoice = async (id: string) => {
-		if (!confirm("Delete this invoice? This cannot be undone.")) return;
 		try {
 			await deleteInvoiceMutation.mutateAsync({ id });
 			// Optionally update local state for immediate UI
 			setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+			toast.success("Invoice deleted successfully");
 		} catch (err) {
 			// eslint-disable-next-line no-console
 			console.error("Delete failed", err);
+			toast.error("Failed to delete invoice");
 		}
 	};
 
@@ -380,8 +383,10 @@ function Invoices() {
 	const [pendingEditValues, setPendingEditValues] =
 		useState<InvoiceFormValues | null>(null);
 
-	const [parent, lineItems, setLineItems] =
-		useDragAndDrop<InvoiceLineItem, HTMLDivElement>([]);
+	const [parent, lineItems, setLineItems] = useDragAndDrop<
+		InvoiceLineItem,
+		HTMLDivElement
+	>([]);
 
 	const invoiceLineItemFields = new Set<keyof InvoiceLineItem>([
 		"id",
@@ -712,6 +717,39 @@ function Invoices() {
 		setActiveTab("preview");
 	};
 
+	const handleDownloadInvoice = async (invoice: Invoice) => {
+		try {
+			const resp = await renderPDFMutation.mutateAsync({ id: invoice.id });
+			if (!resp || !resp.pdfBase64) throw new Error("Failed to generate PDF");
+			const base64 = await resp.pdfBase64;
+			const byteChars = atob(base64);
+			const byteNumbers = new Array(byteChars.length);
+			for (let i = 0; i < byteChars.length; i++) {
+				byteNumbers[i] = byteChars.charCodeAt(i);
+			}
+			const byteArray = new Uint8Array(byteNumbers);
+			const blob = new Blob([byteArray], { type: "application/pdf" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `${invoice.invoiceNumber}.pdf`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+			toast.success("Invoice downloaded successfully", {
+				description: `${invoice.invoiceNumber}.pdf`,
+				position: "top-right",
+			});
+		} catch (err) {
+			console.error("Error downloading invoice", err);
+			toast.error("Failed to download invoice", {
+				description: "Please try again",
+				position: "top-left",
+			});
+		}
+	};
+
 	// Sort invoices in reverse chronological order
 	const sortedInvoices = [...invoices].sort(
 		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -742,16 +780,20 @@ function Invoices() {
 				value={activeTab}
 				onValueChange={(v) => setActiveTab(v)}
 			>
-				<div className="mb-3 shrink-0">
-					<div className="flex items-center gap-3">
-						<FileText className="h-8 w-8 text-primary" />
+				<div className="mb-3 flex shrink-0 items-center gap-3">
+					<FileText className="h-8 w-8 text-primary" />
+					<div>
 						<h2 className="font-semibold text-lg">Invoices</h2>
+						<p className="text-muted-foreground text-sm">
+							Create, manage, and track all your invoices with batch information
+						</p>
 					</div>
 				</div>
 
 				<div className="mb-6 shrink-0">
 					<TabsList className="flex items-center gap-2">
 						<TabsTrigger value="list" className="flex items-center gap-2">
+							<List className="h-4 w-4" />
 							List
 						</TabsTrigger>
 
@@ -804,13 +846,17 @@ function Invoices() {
 									onEdit={handleEditInvoice}
 									onDelete={handleDeleteInvoice}
 									onPreview={handlePreviewInvoice}
+									onDownload={handleDownloadInvoice}
 								/>
 							</Table>
 						</div>
 					</div>
 				</TabsContent>
 
-				<TabsContent value="create" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+				<TabsContent
+					value="create"
+					className="flex min-h-0 flex-1 flex-col overflow-hidden"
+				>
 					<div className="flex min-h-0 flex-1 flex-col">
 						<InvoiceFormShell
 							invoiceForm={invoiceForm}
@@ -824,281 +870,56 @@ function Invoices() {
 							}}
 							editingInvoiceId={editingInvoiceId}
 						>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								invoiceForm.handleSubmit();
-							}}
-							className="space-y-6"
-						>
-							{/* Invoice Header */}
-							<Card className="w-full">
-								<CardHeader>
-									<CardTitle>Invoice Details</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field
-											name="invoiceNumber"
-											validators={{
-												onBlur: ({ value }) => {
-													const result = z
-														.string()
-														.min(1, "Invoice number is required")
-														.safeParse(value);
-													return result.success
-														? undefined
-														: result.error.issues[0]?.message;
-												},
-											}}
-										>
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Invoice Number *
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter invoice number"
-													/>
-													{!field.state.meta.isValid && (
-														<FieldMessage>
-															{field.state.meta.errors.join(", ")}
-														</FieldMessage>
-													)}
-												</Field>
-											)}
-										</invoiceForm.Field>
-
-										<invoiceForm.Field name="invoiceType">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Invoice Type
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter invoice type"
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field
-											name="invoiceDate"
-											validators={{
-												onBlur: ({ value }) => {
-													const result = z
-														.string()
-														.min(1, "Invoice date is required")
-														.safeParse(value);
-													return result.success
-														? undefined
-														: result.error.issues[0]?.message;
-												},
-											}}
-										>
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Invoice Date *
-													</FieldLabel>
-													<DatePickerInput
-														id={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(value) => field.handleChange(value)}
-													/>
-													{!field.state.meta.isValid && (
-														<FieldMessage>
-															{field.state.meta.errors.join(", ")}
-														</FieldMessage>
-													)}
-												</Field>
-											)}
-										</invoiceForm.Field>
-
-										<invoiceForm.Field name="dueDate">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>Due Date</FieldLabel>
-													<DatePickerInput
-														id={field.name}
-														value={field.state.value ?? ""}
-														onBlur={field.handleBlur}
-														onChange={(value) => field.handleChange(value)}
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field name="dcNumber">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														DC Number
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter DC number"
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-
-										<invoiceForm.Field name="dcDate">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														DC Date
-													</FieldLabel>
-													<DatePickerInput
-														id={field.name}
-														value={field.state.value ?? ""}
-														onBlur={field.handleBlur}
-														onChange={(value) => field.handleChange(value)}
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field name="dispatchedThrough">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Dispatched Through
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter dispatched through"
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-								</CardContent>
-							</Card>
-
-							{/* Buyer Selection */}
-							<Card className="w-full">
-								<CardHeader>
-									<CardTitle>Buyer Information</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<BuyerSelector
-										buyers={buyers.data}
-										selectedBuyer={selectedBuyer}
-										editableBuyerData={editableBuyerData}
-										onSelect={(b) => handleBuyerSelect(b)}
-										onChangeEditable={(b) => setEditableBuyerData(b)}
-										onClear={() => {
-											setSelectedBuyer(null);
-											setEditableBuyerData(null);
-										}}
-									/>
-								</CardContent>
-							</Card>
-
-							{/* Product Selection and Line Items */}
-							<Card className="w-full">
-								<CardHeader>
-									<CardTitle>Products</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									{/* Product Selection */}
-									<ProductSelector
-										products={products.data}
-										selectedProductId={selectedProductId}
-										onAddProduct={(p) => {
-											setSelectedProductId(p.id);
-											handleAddProduct(p);
-										}}
-									/>
-
-									{/* Line Items */}
-									{lineItems.length > 0 && (
-										<div>
-											<h4 className="mb-4 font-medium">
-												Invoice Items (Drag to reorder)
-											</h4>
-											<LineItems
-												parent={parent}
-												lineItems={lineItems}
-												onChange={(id, field, value: unknown) => {
-													if (!isInvoiceLineItemField(field)) return;
-													handleLineItemChange(
-														id,
-														field,
-														value as InvoiceLineItem[typeof field],
-													);
-												}}
-												onRemove={(id) => handleRemoveLineItem(id)}
-												onAddBatch={(id) => handleAddBatch(id)}
-												onRemoveBatch={(lineId, batchId) =>
-													handleRemoveBatch(lineId, batchId)
-												}
-												onBatchChange={(
-													lineId,
-													batchId,
-													field,
-													value: unknown,
-												) => {
-													if (!isBatchDetailField(field)) return;
-													handleBatchChange(
-														lineId,
-														batchId,
-														field,
-														value as BatchDetail[typeof field],
-													);
-												}}
-											/>
-
-											<div className="mt-4 rounded-lg bg-muted p-4">
-												<div className="text-right">
-													<p className="font-semibold text-lg">
-														Total Amount: ₹
-														{Math.round(
-															lineItems.reduce(
-																(sum, item) => sum + item.amount,
-																0,
-															),
-														)}
-													</p>
-												</div>
-											</div>
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						</form>
+							<InvoiceFormFields
+								invoiceForm={invoiceForm}
+								buyers={buyers.data}
+								products={products.data}
+								selectedBuyer={selectedBuyer}
+								editableBuyerData={editableBuyerData}
+								onSelectBuyer={(b) => handleBuyerSelect(b)}
+								onChangeEditableBuyer={(b) => setEditableBuyerData(b)}
+								onClearBuyer={() => {
+									setSelectedBuyer(null);
+									setEditableBuyerData(null);
+								}}
+								selectedProductId={selectedProductId}
+								onAddProduct={(p) => {
+									setSelectedProductId(p.id);
+									handleAddProduct(p);
+								}}
+								parent={parent}
+								lineItems={lineItems}
+								onLineItemChange={(id, field, value: unknown) => {
+									if (!isInvoiceLineItemField(field)) return;
+									handleLineItemChange(
+										id,
+										field,
+										value as InvoiceLineItem[typeof field],
+									);
+								}}
+								onRemoveLineItem={(id) => handleRemoveLineItem(id)}
+								onAddBatch={(id) => handleAddBatch(id)}
+								onRemoveBatch={(lineId, batchId) =>
+									handleRemoveBatch(lineId, batchId)
+								}
+								onBatchChange={(lineId, batchId, field, value: unknown) => {
+									if (!isBatchDetailField(field)) return;
+									handleBatchChange(
+										lineId,
+										batchId,
+										field,
+										value as BatchDetail[typeof field],
+									);
+								}}
+							/>
 						</InvoiceFormShell>
 					</div>
 				</TabsContent>
 
-				<TabsContent value="edit" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+				<TabsContent
+					value="edit"
+					className="flex min-h-0 flex-1 flex-col overflow-hidden"
+				>
 					<div className="flex min-h-0 flex-1 flex-col">
 						<InvoiceFormShell
 							invoiceForm={invoiceForm}
@@ -1112,276 +933,48 @@ function Invoices() {
 							}}
 							editingInvoiceId={editingInvoiceId}
 						>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								invoiceForm.handleSubmit();
-							}}
-							className="space-y-6"
-						>
-							{/* Invoice Header */}
-							<Card className="w-full">
-								<CardHeader>
-									<CardTitle>Edit Invoice</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field
-											name="invoiceNumber"
-											validators={{
-												onBlur: ({ value }) => {
-													const result = z
-														.string()
-														.min(1, "Invoice number is required")
-														.safeParse(value);
-													return result.success
-														? undefined
-														: result.error.issues[0]?.message;
-												},
-											}}
-										>
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Invoice Number *
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter invoice number"
-													/>
-													{!field.state.meta.isValid && (
-														<FieldMessage>
-															{field.state.meta.errors.join(", ")}
-														</FieldMessage>
-													)}
-												</Field>
-											)}
-										</invoiceForm.Field>
-
-										<invoiceForm.Field name="invoiceType">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Invoice Type
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter invoice type"
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field
-											name="invoiceDate"
-											validators={{
-												onBlur: ({ value }) => {
-													const result = z
-														.string()
-														.min(1, "Invoice date is required")
-														.safeParse(value);
-													return result.success
-														? undefined
-														: result.error.issues[0]?.message;
-												},
-											}}
-										>
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Invoice Date *
-													</FieldLabel>
-													<DatePickerInput
-														id={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(value) => field.handleChange(value)}
-													/>
-													{!field.state.meta.isValid && (
-														<FieldMessage>
-															{field.state.meta.errors.join(", ")}
-														</FieldMessage>
-													)}
-												</Field>
-											)}
-										</invoiceForm.Field>
-
-										<invoiceForm.Field name="dueDate">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>Due Date</FieldLabel>
-													<DatePickerInput
-														id={field.name}
-														value={field.state.value ?? ""}
-														onBlur={field.handleBlur}
-														onChange={(value) => field.handleChange(value)}
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field name="dcNumber">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														DC Number
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter DC number"
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-
-										<invoiceForm.Field name="dcDate">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														DC Date
-													</FieldLabel>
-													<DatePickerInput
-														id={field.name}
-														value={field.state.value ?? ""}
-														onBlur={field.handleBlur}
-														onChange={(value) => field.handleChange(value)}
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-
-									<div className="grid grid-cols-2 gap-4">
-										<invoiceForm.Field name="dispatchedThrough">
-											{(field) => (
-												<Field>
-													<FieldLabel htmlFor={field.name}>
-														Dispatched Through
-													</FieldLabel>
-													<Input
-														id={field.name}
-														name={field.name}
-														value={field.state.value}
-														onBlur={field.handleBlur}
-														onChange={(e) => field.handleChange(e.target.value)}
-														placeholder="Enter dispatched through"
-													/>
-												</Field>
-											)}
-										</invoiceForm.Field>
-									</div>
-								</CardContent>
-							</Card>
-
-							{/* Buyer Selection */}
-							<Card className="w-full">
-								<CardHeader>
-									<CardTitle>Buyer Information</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<BuyerSelector
-										buyers={buyers.data}
-										selectedBuyer={selectedBuyer}
-										editableBuyerData={editableBuyerData}
-										onSelect={(b) => handleBuyerSelect(b)}
-										onChangeEditable={(b) => setEditableBuyerData(b)}
-										onClear={() => {
-											setSelectedBuyer(null);
-											setEditableBuyerData(null);
-										}}
-									/>
-								</CardContent>
-							</Card>
-
-							{/* Product Selection and Line Items */}
-							<Card className="w-full">
-								<CardHeader>
-									<CardTitle>Products</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									{/* Product Selection */}
-									<ProductSelector
-										products={products.data}
-										selectedProductId={selectedProductId}
-										onAddProduct={(p) => {
-											setSelectedProductId(p.id);
-											handleAddProduct(p);
-										}}
-									/>
-
-									{/* Line Items */}
-									{lineItems.length > 0 && (
-										<div>
-											<h4 className="mb-4 font-medium">
-												Invoice Items (Drag to reorder)
-											</h4>
-											<LineItems
-												parent={parent}
-												lineItems={lineItems}
-												onChange={(id, field, value: unknown) => {
-													if (!isInvoiceLineItemField(field)) return;
-													handleLineItemChange(
-														id,
-														field,
-														value as InvoiceLineItem[typeof field],
-													);
-												}}
-												onRemove={(id) => handleRemoveLineItem(id)}
-												onAddBatch={(id) => handleAddBatch(id)}
-												onRemoveBatch={(lineId, batchId) =>
-													handleRemoveBatch(lineId, batchId)
-												}
-												onBatchChange={(
-													lineId,
-													batchId,
-													field,
-													value: unknown,
-												) => {
-													if (!isBatchDetailField(field)) return;
-													handleBatchChange(
-														lineId,
-														batchId,
-														field,
-														value as BatchDetail[typeof field],
-													);
-												}}
-											/>
-
-											<div className="mt-4 rounded-lg bg-muted p-4">
-												<div className="text-right">
-													<p className="font-semibold text-lg">
-														Total Amount: ₹
-														{Math.round(
-															lineItems.reduce(
-																(sum, item) => sum + item.amount,
-																0,
-															),
-														)}
-													</p>
-												</div>
-											</div>
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						</form>
+							<InvoiceFormFields
+								invoiceForm={invoiceForm}
+								buyers={buyers.data}
+								products={products.data}
+								selectedBuyer={selectedBuyer}
+								editableBuyerData={editableBuyerData}
+								onSelectBuyer={(b) => handleBuyerSelect(b)}
+								onChangeEditableBuyer={(b) => setEditableBuyerData(b)}
+								onClearBuyer={() => {
+									setSelectedBuyer(null);
+									setEditableBuyerData(null);
+								}}
+								selectedProductId={selectedProductId}
+								onAddProduct={(p) => {
+									setSelectedProductId(p.id);
+									handleAddProduct(p);
+								}}
+								parent={parent}
+								lineItems={lineItems}
+								onLineItemChange={(id, field, value: unknown) => {
+									if (!isInvoiceLineItemField(field)) return;
+									handleLineItemChange(
+										id,
+										field,
+										value as InvoiceLineItem[typeof field],
+									);
+								}}
+								onRemoveLineItem={(id) => handleRemoveLineItem(id)}
+								onAddBatch={(id) => handleAddBatch(id)}
+								onRemoveBatch={(lineId, batchId) =>
+									handleRemoveBatch(lineId, batchId)
+								}
+								onBatchChange={(lineId, batchId, field, value: unknown) => {
+									if (!isBatchDetailField(field)) return;
+									handleBatchChange(
+										lineId,
+										batchId,
+										field,
+										value as BatchDetail[typeof field],
+									);
+								}}
+							/>
 						</InvoiceFormShell>
 					</div>
 				</TabsContent>

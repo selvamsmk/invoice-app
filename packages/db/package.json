@@ -1,33 +1,34 @@
 {
-  "name": "@invoice-app/db",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "scripts": {
-    "db:local": "turso dev --db-file local.db",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
-  },
-  "devDependencies": {
-    "drizzle-kit": "^0.31.8",
-    "@invoice-app/config": "workspace:*",
-    "@types/bun": "^1.2.6",
-    "better-sqlite3": "^12.6.2"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "drizzle-orm": "^0.45.0",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
-  }
+	"name": "@invoice-app/db",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {
+		"db:local": "turso dev --db-file local.db",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate"
+	},
+	"devDependencies": {
+		"drizzle-kit": "^0.31.8",
+		"@invoice-app/config": "workspace:*",
+		"@types/bun": "^1.2.6",
+		"better-sqlite3": "^12.6.2"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"drizzle-orm": "^0.45.0",
+		"dotenv": "catalog:",
+		"zod": "catalog:",
+		"drizzle-query-logger": "catalog:"
+	}
 }

@@ -1,41 +1,73 @@
+import { db, invoice, sql, stentInvoice } from "@invoice-app/db";
 import { publicProcedure } from "../index";
-import { db, invoice, sql } from "@invoice-app/db";
 
 export const dashboardRouter = {
 	getDashboardData: publicProcedure.handler(async () => {
-		// Get total count of invoices
-		const totalInvoicesResult = await db
-			.select({ count: sql<number>`count(*)` })
-			.from(invoice);
-		const totalInvoices = totalInvoicesResult[0]?.count ?? 0;
+		const [
+			totalInvoicesResult,
+			totalStentInvoicesResult,
+			totalRevenueResult,
+			totalStentRevenueResult,
+			recentInvoices,
+			recentStentInvoices,
+		] = await Promise.all([
+			db.select({ count: sql<number>`count(*)` }).from(invoice),
+			db.select({ count: sql<number>`count(*)` }).from(stentInvoice),
+			db.select({ total: sql<number>`sum(${invoice.totalAmount})` }).from(invoice),
+			db
+				.select({ total: sql<number>`sum(${stentInvoice.totalAmount})` })
+				.from(stentInvoice),
+			db.query.invoice.findMany({
+				orderBy: (invoice, { desc }) => [desc(invoice.createdAt)],
+				limit: 5,
+			}),
+			db.query.stentInvoice.findMany({
+				orderBy: (stentInvoice, { desc }) => [desc(stentInvoice.createdAt)],
+				limit: 5,
+			}),
+		]);
 
-		// Get total revenue (sum of all invoice total amounts)
-		const totalRevenueResult = await db
-			.select({ total: sql<number>`sum(${invoice.totalAmount})` })
-			.from(invoice);
-		const totalRevenue = totalRevenueResult[0]?.total ?? 0;
+		const totalInvoices =
+			(totalInvoicesResult[0]?.count ?? 0) +
+			(totalStentInvoicesResult[0]?.count ?? 0);
 
-		// Get recent invoices (up to 5)
-		const recentInvoices = await db.query.invoice.findMany({
-			with: {
-				buyer: true,
-			},
-			orderBy: (invoice, { desc }) => [desc(invoice.createdAt)],
-			limit: 5,
-		});
+		const totalRevenue =
+			(totalRevenueResult[0]?.total ?? 0) +
+			(totalStentRevenueResult[0]?.total ?? 0);
 
-		// Map recent invoices to simplified format
-		const recentInvoicesData = recentInvoices.map((inv) => ({
-			invoiceNumber: inv.invoiceNumber,
-			buyer: inv.buyerName,
-			totalAmount: inv.totalAmount,
-			date: inv.invoiceDate,
-		}));
+		const mergedRecentInvoices = [
+			...recentInvoices.map((inv) => ({
+				invoiceNumber: inv.invoiceNumber,
+				buyer: inv.buyerName,
+				totalAmount: inv.totalAmount,
+				date: inv.invoiceDate,
+				createdAt: inv.createdAt,
+			})),
+			...recentStentInvoices.map((inv) => ({
+				invoiceNumber: inv.invoiceNumber,
+				buyer: inv.buyerName,
+				totalAmount: inv.totalAmount,
+				date: inv.invoiceDate,
+				createdAt: inv.createdAt,
+			})),
+		]
+			.sort((a, b) => {
+				const toTimestamp = (value: Date | string | number | null | undefined) => {
+					if (value instanceof Date) return value.getTime();
+					if (typeof value === "number") return value;
+					if (typeof value === "string") return new Date(value).getTime();
+					return 0;
+				};
+
+				return toTimestamp(b.createdAt) - toTimestamp(a.createdAt);
+			})
+			.slice(0, 5)
+			.map(({ createdAt: _createdAt, ...invoiceData }) => invoiceData);
 
 		return {
 			totalInvoices,
 			totalRevenue,
-			recentInvoices: recentInvoicesData,
+			recentInvoices: mergedRecentInvoices,
 		};
 	}),
 };

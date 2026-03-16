@@ -1,6 +1,6 @@
-import { useAppContext } from "@/hooks/useAppContext";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useAppContext } from "@/hooks/useAppContext";
 import { DISABLE_AUTH } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/")({
@@ -42,7 +42,7 @@ function HomeComponent() {
 						<div
 							className={`h-2 w-2 rounded-full ${healthCheck.data ? "bg-green-500" : "bg-red-500"}`}
 						/>
-						<span className="text-sm text-muted-foreground">
+						<span className="text-muted-foreground text-sm">
 							{healthCheck.isLoading
 								? "Checking..."
 								: healthCheck.data

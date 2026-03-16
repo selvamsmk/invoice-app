@@ -1,0 +1,1 @@
+ALTER TABLE `stent_invoice_line_item` ADD `patient_date` text;

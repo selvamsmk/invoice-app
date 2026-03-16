@@ -1,7 +1,7 @@
-import { useAppContext } from "@/hooks/useAppContext";
-import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useAppContext } from "@/hooks/useAppContext";
+import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/dashboard")({
 	component: RouteComponent,

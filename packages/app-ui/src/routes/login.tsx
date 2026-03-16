@@ -1,5 +1,5 @@
-import SignInForm from "@/components/sign-in-form";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import SignInForm from "@/components/sign-in-form";
 import { authClient, DISABLE_AUTH } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/login")({
@@ -19,8 +19,8 @@ export const Route = createFileRoute("/login")({
 
 function RouteComponent() {
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-background p-4">
-			<div className="w-full max-w-md mx-auto">
+		<div className="flex min-h-screen items-center justify-center bg-background p-4">
+			<div className="mx-auto w-full max-w-md">
 				<SignInForm />
 			</div>
 		</div>

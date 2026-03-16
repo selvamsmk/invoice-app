@@ -14,6 +14,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AppRouteRouteImport } from './routes/app/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppStentInvoicesRouteImport } from './routes/app/stent-invoices'
+import { Route as AppSettingsRouteImport } from './routes/app/settings'
 import { Route as AppProductsRouteImport } from './routes/app/products'
 import { Route as AppMyDetailsRouteImport } from './routes/app/my-details'
 import { Route as AppInvoicesRouteImport } from './routes/app/invoices'
@@ -44,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppStentInvoicesRoute = AppStentInvoicesRouteImport.update({
   id: '/stent-invoices',
   path: '/stent-invoices',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRouteRoute,
 } as any)
 const AppProductsRoute = AppProductsRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/app/invoices': typeof AppInvoicesRoute
   '/app/my-details': typeof AppMyDetailsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stent-invoices': typeof AppStentInvoicesRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/app/invoices': typeof AppInvoicesRoute
   '/app/my-details': typeof AppMyDetailsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stent-invoices': typeof AppStentInvoicesRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/app/invoices': typeof AppInvoicesRoute
   '/app/my-details': typeof AppMyDetailsRoute
   '/app/products': typeof AppProductsRoute
+  '/app/settings': typeof AppSettingsRoute
   '/app/stent-invoices': typeof AppStentInvoicesRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/app/invoices'
     | '/app/my-details'
     | '/app/products'
+    | '/app/settings'
     | '/app/stent-invoices'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/app/invoices'
     | '/app/my-details'
     | '/app/products'
+    | '/app/settings'
     | '/app/stent-invoices'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/app/invoices'
     | '/app/my-details'
     | '/app/products'
+    | '/app/settings'
     | '/app/stent-invoices'
   fileRoutesById: FileRoutesById
 }
@@ -201,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/stent-invoices'
       fullPath: '/app/stent-invoices'
       preLoaderRoute: typeof AppStentInvoicesRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRouteRoute
     }
     '/app/products': {
@@ -255,6 +274,7 @@ interface AppRouteRouteChildren {
   AppInvoicesRoute: typeof AppInvoicesRoute
   AppMyDetailsRoute: typeof AppMyDetailsRoute
   AppProductsRoute: typeof AppProductsRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppStentInvoicesRoute: typeof AppStentInvoicesRoute
 }
 
@@ -265,6 +285,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppInvoicesRoute: AppInvoicesRoute,
   AppMyDetailsRoute: AppMyDetailsRoute,
   AppProductsRoute: AppProductsRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppStentInvoicesRoute: AppStentInvoicesRoute,
 }
 

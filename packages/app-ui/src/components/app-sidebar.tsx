@@ -6,6 +6,7 @@ import {
 	LayoutDashboard,
 	LogOut,
 	Package,
+	Settings,
 	Truck,
 	Users,
 } from "lucide-react";
@@ -90,6 +91,14 @@ export function AppSidebar() {
 			</SidebarContent>
 			<SidebarFooter>
 				<SidebarMenu>
+					<SidebarMenuItem key={"settings"}>
+						<SidebarMenuButton asChild className="pr-4">
+							<Link to="/app/settings" className="flex items-center gap-2">
+								<Settings />
+								<span>Settings</span>
+							</Link>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
 					<SidebarMenuItem key={"sign-out"}>
 						<SidebarMenuButton
 							onClick={async () => {

@@ -12,6 +12,7 @@ const menuOrder: Record<string, number> = {
 	"/app/products": 4,
 	"/app/buyers": 5,
 	"/app/my-details": 6,
+	"/app/settings": 7,
 };
 
 export function createAppRouter(context: RouterAppContext) {

@@ -6,6 +6,7 @@ import { dashboardRouter } from "./dashboard";
 import { deliveryChallansRouter } from "./delivery-challans";
 import { invoicesRouter } from "./invoices";
 import { productsRouter } from "./products";
+import { settingsRouter } from "./settings";
 import { stentInvoicesRouter } from "./stent-invoices";
 
 export const appRouter = {
@@ -26,6 +27,7 @@ export const appRouter = {
 	...stentInvoicesRouter,
 	...deliveryChallansRouter,
 	...dashboardRouter,
+	...settingsRouter,
 };
 export type AppRouter = typeof appRouter;
 export type AppRouterClient = RouterClient<typeof appRouter>;

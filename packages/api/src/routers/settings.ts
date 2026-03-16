@@ -5,6 +5,18 @@ import { publicProcedure } from "../index";
 const invoiceExportDirKey = "invoice_export_dir";
 
 export const settingsRouter = {
+	getInvoiceExportDir: publicProcedure.handler(async () => {
+		const setting = await db.query.appSettings.findFirst({
+			where: eq(appSettings.key, invoiceExportDirKey),
+		});
+
+		return {
+			success: true,
+			key: invoiceExportDirKey,
+			value: setting?.value ?? null,
+		};
+	}),
+
 	setInvoiceExportDir: publicProcedure
 		.input(
 			z.object({

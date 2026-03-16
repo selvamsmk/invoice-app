@@ -43,6 +43,13 @@
       "when": 1772965385550,
       "tag": "0005_regular_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1773644462971,
+      "tag": "0006_amusing_amphibian",
+      "breakpoints": true
     }
   ]
 }

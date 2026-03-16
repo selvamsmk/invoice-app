@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { EnhancedQueryLogger } from 'drizzle-query-logger';
+import * as appSettingsSchema from "./schema/app_settings";
 import * as appSeedsSchema from "./schema/app_seeds";
 // --- Schemas ---
 import * as authSchema from "./schema/auth";
@@ -43,6 +44,7 @@ const schema = {
 	...invoiceSchema,
 	...stentInvoiceSchema,
 	...deliveryChallanSchema,
+	...appSettingsSchema,
 	...appSeedsSchema,
 };
 
@@ -64,6 +66,7 @@ export {
 	sql,
 } from "drizzle-orm";
 export { migrate } from "drizzle-orm/bun-sqlite/migrator";
+export * from "./schema/app_settings";
 export * from "./schema/app_seeds";
 export * from "./schema/auth";
 export * from "./schema/buyer";

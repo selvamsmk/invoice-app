@@ -1,4 +1,4 @@
-import { db, migrate, sql } from "@invoice-app/db";
+import { db, migrate } from "@invoice-app/db";
 import path from "path";
 
 export async function runMigrations() {
@@ -7,33 +7,19 @@ export async function runMigrations() {
 
 	console.log("📂 Running migrations from:", migrationsFolder);
 
-	const existingTables = await db.all<{ name: string }>(sql`
-    select name
-    from sqlite_master
-    where type = 'table'
-      and name not like 'sqlite_%'
-      and name != '_drizzle_migrations'
-  `);
-
-	if (existingTables.length > 0) {
-		console.warn(
-			"⚠️ Migration skipped: existing tables found. If schema changed, reset local DB.",
-		);
-		return;
-	}
-
 	try {
 		await migrate(db, {
 			migrationsFolder,
 		});
+		console.log("✅ Migrations are up to date.");
 	} catch (err) {
 		const message = err instanceof Error ? err.message : String(err);
 		const alreadyExists = message.includes("already exists");
 		if (alreadyExists) {
 			console.warn(
-				"⚠️ Migration skipped: table already exists. If schema changed, reset local DB.",
+				"⚠️ Migration conflict detected (objects already exist). Check migration history/state before retrying.",
 			);
-			return;
+			throw err;
 		}
 		throw err;
 	}

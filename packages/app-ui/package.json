@@ -38,6 +38,7 @@
 		"@tanstack/react-router": "catalog:",
 		"@tanstack/react-router-devtools": "^1.147.0",
 		"@tauri-apps/plugin-dialog": "^2",
+		"@tauri-apps/plugin-fs": "^2.4.5",
 		"better-auth": "catalog:",
 		"bun-plugin-tailwind": "^0.1.2",
 		"class-variance-authority": "^0.7.1",

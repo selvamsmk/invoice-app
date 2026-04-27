@@ -4,6 +4,7 @@ import BuyerSelector from "@/components/invoices/BuyerSelector";
 import LineItems from "@/components/invoices/LineItems";
 import ProductSelector from "@/components/invoices/ProductSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerInput } from "@/components/ui/date-picker";
 import { Field, FieldLabel, FieldMessage } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -169,6 +170,95 @@ export default function InvoiceFormFields({
 											{field.state.meta.errors.join(", ")}
 										</FieldMessage>
 									)}
+								</Field>
+							)}
+						</invoiceForm.Field>
+					</div>
+
+					<div className="grid grid-cols-2 gap-4">
+						<invoiceForm.Field name="dcNumber">
+							{(field: any) => (
+								<Field>
+									<FieldLabel htmlFor={field.name}>DC Number</FieldLabel>
+									<Input
+										id={field.name}
+										name={field.name}
+										value={field.state.value ?? ""}
+										onBlur={field.handleBlur}
+										onChange={(e) => field.handleChange(e.target.value)}
+										placeholder="Enter DC number"
+									/>
+								</Field>
+							)}
+						</invoiceForm.Field>
+
+						<invoiceForm.Field name="dcDate">
+							{(field: any) => (
+								<Field>
+									<FieldLabel htmlFor={field.name}>DC Date</FieldLabel>
+									<DatePickerInput
+										id={field.name}
+										value={field.state.value}
+										onChange={(value) => field.handleChange(value)}
+										onBlur={field.handleBlur}
+										placeholder="Select DC date"
+									/>
+								</Field>
+							)}
+						</invoiceForm.Field>
+					</div>
+
+					<invoiceForm.Field name="dispatchedThrough">
+						{(field: any) => (
+							<Field>
+								<FieldLabel htmlFor={field.name}>Dispatched Through</FieldLabel>
+								<Input
+									id={field.name}
+									name={field.name}
+									value={field.state.value ?? ""}
+									onBlur={field.handleBlur}
+									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder="Enter courier / transport name"
+								/>
+							</Field>
+						)}
+					</invoiceForm.Field>
+
+					<div className="grid grid-cols-2 gap-4">
+						<invoiceForm.Field name="showSign">
+							{(field: any) => (
+								<Field>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={field.name}
+											checked={Boolean(field.state.value)}
+											onCheckedChange={(checked) =>
+												field.handleChange(checked === true)
+											}
+										/>
+										<FieldLabel htmlFor={field.name}>
+											Show Sign In PDF
+										</FieldLabel>
+									</div>
+								</Field>
+							)}
+						</invoiceForm.Field>
+
+						<invoiceForm.Field name="showSeal">
+							{(field: any) => (
+								<Field>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={field.name}
+											checked={Boolean(field.state.value)}
+											onCheckedChange={(checked) =>
+												field.handleChange(checked === true)
+											}
+										/>
+										<FieldLabel htmlFor={field.name}>
+											Show Seal In PDF
+										</FieldLabel>
+									</div>
 								</Field>
 							)}
 						</invoiceForm.Field>

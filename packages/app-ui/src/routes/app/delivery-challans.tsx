@@ -26,6 +26,8 @@ type DeliveryChallanFormValues = {
 	dcDate: string;
 	dcNumber: string;
 	dispatchedThrough: string;
+	showSign: boolean;
+	showSeal: boolean;
 };
 
 type BatchDetail = {
@@ -95,6 +97,10 @@ type RawDeliveryChallan = {
 	dispatched_through?: string;
 	status?: string;
 	isFinalized?: boolean;
+	showSign?: boolean;
+	showSeal?: boolean;
+	show_sign?: boolean;
+	show_seal?: boolean;
 	createdAt?: string | Date;
 	updatedAt?: string | Date;
 	lineItems?: RawLineItem[];
@@ -127,6 +133,8 @@ type DeliveryChallanPayload = {
 	dispatchedThrough?: string;
 	status: string;
 	isFinalized: boolean;
+	showSign: boolean;
+	showSeal: boolean;
 	buyerId: string;
 	buyerName: string;
 	buyerAddressLine1: string;
@@ -172,6 +180,8 @@ function DeliveryChallans() {
 				dispatchedThrough: c.dispatchedThrough ?? c.dispatched_through ?? null,
 				status: c.status ?? "Draft",
 				isFinalized: c.isFinalized ?? false,
+				showSign: Boolean(c.showSign ?? c.show_sign ?? false),
+				showSeal: Boolean(c.showSeal ?? c.show_seal ?? false),
 				buyerId: c.buyerId ?? "",
 				buyerName: c.buyerName ?? "",
 				buyerAddressLine1: c.buyerAddressLine1 ?? "",
@@ -279,6 +289,8 @@ function DeliveryChallans() {
 			dispatchedThrough: String(
 				raw.dispatchedThrough ?? raw.dispatched_through ?? challan.dispatchedThrough ?? "",
 			),
+			showSign: Boolean(raw.showSign ?? raw.show_sign ?? false),
+			showSeal: Boolean(raw.showSeal ?? raw.show_seal ?? false),
 		});
 		setActiveTab("edit");
 	};
@@ -345,6 +357,8 @@ function DeliveryChallans() {
 		dcDate: "",
 		dcNumber: "",
 		dispatchedThrough: "",
+		showSign: false,
+		showSeal: false,
 	};
 
 	const challanForm = useForm({
@@ -380,6 +394,8 @@ function DeliveryChallans() {
 				dispatchedThrough: value.dispatchedThrough || undefined,
 				status: "Draft",
 				isFinalized: false,
+				showSign: value.showSign,
+				showSeal: value.showSeal,
 				buyerId: selectedBuyer?.id ?? editableBuyerData.id,
 				buyerName: editableBuyerData.name,
 				buyerAddressLine1: editableBuyerData.addressLine1 ?? "",
@@ -430,7 +446,7 @@ function DeliveryChallans() {
 				challanForm.setFieldValue(key as any, val as any);
 			});
 		} else {
-			console.warn("setFieldValue not available; skipping prefill");
+			challanForm.reset(pendingEditValues);
 		}
 		setPendingEditValues(null);
 	}, [activeTab, challanForm, pendingEditValues]);

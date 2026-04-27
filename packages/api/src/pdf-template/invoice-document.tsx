@@ -17,6 +17,8 @@ import {
 	formatExpiry,
 } from "../utils/pdf-utils";
 import { registerFonts } from "../utils/registerFonts";
+import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
+import { SIGN_PATH_D } from "../svg/sign";
 
 registerFonts();
 
@@ -47,6 +49,42 @@ const CompanyLogoSvg = ({
 	</Svg>
 );
 
+const AuthorizedSignSvg = ({
+	width = 132,
+	height = 52,
+}: {
+	width?: number;
+	height?: number;
+}) => (
+	<Svg
+		width={width}
+		height={height}
+		viewBox="-193.33283 26.829458 551.82147 273.08542"
+		preserveAspectRatio="xMidYMid meet"
+		style={{ width, height }}
+	>
+		<Path d={SIGN_PATH_D} fill="rgba(0,0,0,1)" />
+	</Svg>
+);
+
+const CompanySealSvg = ({
+	width = "100%",
+	height = "100%",
+}: {
+	width?: number | string;
+	height?: number | string;
+}) => (
+	<Svg
+		width={width}
+		height={height}
+		viewBox={SEAL_VIEW_BOX}
+		preserveAspectRatio="xMidYMid meet"
+		style={{ width, height }}
+	>
+		<Path d={SEAL_PATH_D} fill="#000435" transform={SEAL_TRANSFORM} />
+	</Svg>
+);
+
 export interface InvoiceProps {
 	id: string;
 	invoiceNumber: string;
@@ -68,6 +106,8 @@ export interface InvoiceProps {
 	dispatchedThrough?: string;
 	createdAt: string;
 	isFinalized: boolean;
+	showSign?: boolean;
+	showSeal?: boolean;
 	invoiceType: string;
 	lineItems?: {
 		id?: string;
@@ -164,7 +204,9 @@ export function InvoiceDocument({
 					<View style={pdfStyles.infoRow}>
 						<View style={[pdfStyles.infoColumn, pdfStyles.billToColumn]}>
 							<Text style={pdfStyles.sectionTitle}>Bill To</Text>
-							<Text style={{ fontWeight: "bold" }}>{selectedInvoice.buyerName}</Text>
+							<Text style={{ fontWeight: "bold" }}>
+								{selectedInvoice.buyerName}
+							</Text>
 							{selectedInvoice.buyerAddressLine1 && (
 								<Text>{selectedInvoice.buyerAddressLine1}</Text>
 							)}
@@ -807,12 +849,19 @@ export function InvoiceDocument({
 						</View>
 					</View>
 
-					<View style={pdfStyles.footerMiddleColumn} />
+					<View style={pdfStyles.footerMiddleColumn}>
+						<View style={pdfStyles.sealBox}>
+							{selectedInvoice.showSeal ? <CompanySealSvg /> : null}
+						</View>
+					</View>
 
 					<View style={pdfStyles.footerRightColumn}>
 						<Text style={pdfStyles.footerLabel}>
 							For {companyData?.companyName}
 						</Text>
+						<View style={pdfStyles.signatureBox}>
+							{selectedInvoice.showSign ? <AuthorizedSignSvg /> : null}
+						</View>
 						<Text style={pdfStyles.footerLabel}>Authorized Signatory</Text>
 					</View>
 				</View>
@@ -982,12 +1031,20 @@ export const pdfStyles = StyleSheet.create({
 	},
 	footerMiddleColumn: {
 		width: "30%",
+		alignItems: "center",
+		justifyContent: "center",
 		paddingLeft: 8,
 		paddingRight: 8,
 		borderRightWidth: 1,
 		borderRightColor: "rgba(0,0,0,0.12)",
-		paddingTop: 13,
-		paddingBottom: 13,
+		paddingTop: 0,
+		paddingBottom: 0,
+	},
+	sealBox: {
+		width: 100,
+		height: 80,
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	footerRightColumn: {
 		width: "35%",
@@ -1005,6 +1062,12 @@ export const pdfStyles = StyleSheet.create({
 		textTransform: "uppercase",
 		fontWeight: "bold",
 	},
+	signatureBox: {
+		width: "100%",
+		height: 37,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	bankRow: { flexDirection: "row", marginBottom: 2, alignItems: "center" },
 	bankLabel: {
 		width: "20%",
@@ -1017,7 +1080,12 @@ export const pdfStyles = StyleSheet.create({
 		textAlign: "right",
 		paddingRight: 2,
 	},
-	bankValue: { flex: 1, fontSize: FONT_SIZE_SMALL, fontWeight: "bold", paddingLeft: 2 },
+	bankValue: {
+		flex: 1,
+		fontSize: FONT_SIZE_SMALL,
+		fontWeight: "bold",
+		paddingLeft: 2,
+	},
 	itemsFooterRow: {
 		borderTopWidth: 1,
 		borderTopColor: "rgba(0,0,0,0)",

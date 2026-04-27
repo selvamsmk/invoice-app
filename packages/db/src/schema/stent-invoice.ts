@@ -28,6 +28,12 @@ export const stentInvoice = sqliteTable(
 		isFinalized: integer("is_finalized", { mode: "boolean" })
 			.notNull()
 			.default(false),
+		showSign: integer("show_sign", { mode: "boolean" })
+			.notNull()
+			.default(sql`0`),
+		showSeal: integer("show_seal", { mode: "boolean" })
+			.notNull()
+			.default(sql`0`),
 
 		// Amounts (stored in paise/cents)
 		subtotalAmount: integer("subtotal_amount").notNull().default(0),

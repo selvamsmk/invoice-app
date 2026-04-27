@@ -30,6 +30,8 @@ type StentInvoiceFormValues = {
 	dcDate: string;
 	dcNumber: string;
 	dispatchedThrough: string;
+	showSign: boolean;
+	showSeal: boolean;
 };
 
 type SizeDetail = {
@@ -128,6 +130,10 @@ type RawStentInvoice = {
 	total?: number;
 	status?: string;
 	isFinalized?: boolean;
+	showSign?: boolean;
+	showSeal?: boolean;
+	show_sign?: boolean;
+	show_seal?: boolean;
 	createdAt?: string | Date;
 	updatedAt?: string | Date;
 	lineItems?: RawLineItem[];
@@ -172,6 +178,8 @@ type StentInvoicePayload = {
 	dispatchedThrough?: string;
 	status: string;
 	isFinalized: boolean;
+	showSign: boolean;
+	showSeal: boolean;
 	subtotalAmount: number;
 	taxAmount: number;
 	totalAmount: number;
@@ -250,6 +258,8 @@ function StentInvoices() {
 					dcNumber: inv.dcNumber ?? inv.dc_number ?? undefined,
 					dispatchedThrough:
 						inv.dispatchedThrough ?? inv.dispatched_through ?? undefined,
+					showSign: Boolean(inv.showSign ?? inv.show_sign ?? false),
+					showSeal: Boolean(inv.showSeal ?? inv.show_seal ?? false),
 					// Ensure invoice-level amount exists (already in rupees)
 					amount: inv.totalAmount ?? inv.total_amount ?? inv.total ?? 0,
 					// Attach normalized line items
@@ -367,6 +377,8 @@ function StentInvoices() {
 			dispatchedThrough: String(
 				raw.dispatchedThrough ?? raw.dispatched_through ?? "",
 			),
+			showSign: Boolean(raw.showSign ?? raw.show_sign ?? false),
+			showSeal: Boolean(raw.showSeal ?? raw.show_seal ?? false),
 		});
 		setActiveTab("edit");
 	};
@@ -447,6 +459,8 @@ function StentInvoices() {
 		dcDate: "",
 		dcNumber: "",
 		dispatchedThrough: "",
+		showSign: false,
+		showSeal: false,
 	};
 
 	const invoiceForm = useForm({
@@ -511,6 +525,8 @@ function StentInvoices() {
 				dispatchedThrough: value.dispatchedThrough || undefined,
 				status: "Draft",
 				isFinalized: false,
+				showSign: value.showSign,
+				showSeal: value.showSeal,
 				subtotalAmount: subtotalPaise,
 				taxAmount: taxPaise,
 				totalAmount: totalPaise,
@@ -577,6 +593,8 @@ function StentInvoices() {
 				"dispatchedThrough",
 				pendingEditValues.dispatchedThrough,
 			);
+			invoiceForm.setFieldValue("showSign", pendingEditValues.showSign);
+			invoiceForm.setFieldValue("showSeal", pendingEditValues.showSeal);
 		} else {
 			invoiceForm.reset(pendingEditValues);
 		}

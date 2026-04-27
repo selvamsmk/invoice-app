@@ -10,6 +10,8 @@ import {
 } from "@react-pdf/renderer";
 import { formatDate, formatExpiry } from "../utils/pdf-utils";
 import { registerFonts } from "../utils/registerFonts";
+import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
+import { SIGN_PATH_D } from "../svg/sign";
 
 registerFonts();
 
@@ -40,6 +42,42 @@ const CompanyLogoSvg = ({
 	</Svg>
 );
 
+const AuthorizedSignSvg = ({
+	width = 132,
+	height = 52,
+}: {
+	width?: number;
+	height?: number;
+}) => (
+	<Svg
+		width={width}
+		height={height}
+		viewBox="-193.33283 26.829458 551.82147 273.08542"
+		preserveAspectRatio="xMidYMid meet"
+		style={{ width, height }}
+	>
+		<Path d={SIGN_PATH_D} fill="rgba(0,0,0,1)" />
+	</Svg>
+);
+
+const CompanySealSvg = ({
+	width = "100%",
+	height = "100%",
+}: {
+	width?: number | string;
+	height?: number | string;
+}) => (
+	<Svg
+		width={width}
+		height={height}
+		viewBox={SEAL_VIEW_BOX}
+		preserveAspectRatio="xMidYMid meet"
+		style={{ width, height }}
+	>
+		<Path d={SEAL_PATH_D} fill="#000435" transform={SEAL_TRANSFORM} />
+	</Svg>
+);
+
 export interface DeliveryChallanProps {
 	id: string;
 	challanNumber: string;
@@ -55,6 +93,8 @@ export interface DeliveryChallanProps {
 	buyerPincode: string;
 	buyerPhone?: string;
 	buyerGstin?: string;
+	showSign?: boolean;
+	showSeal?: boolean;
 	lineItems?: {
 		id: string;
 		name: string;
@@ -470,12 +510,19 @@ export function DeliveryChallanDocument({
 						<Text style={pdfStyles.dcSignatureLabel}>Signature / Seal</Text>
 					</View>
 
-					<View style={pdfStyles.footerMiddleColumn} />
+					<View style={pdfStyles.footerMiddleColumn}>
+						<View style={pdfStyles.sealBox}>
+							{selectedChallan.showSeal ? <CompanySealSvg /> : null}
+						</View>
+					</View>
 
 					<View style={pdfStyles.footerRightColumn}>
 						<Text style={pdfStyles.footerLabel}>
 							For {companyData?.companyName}
 						</Text>
+						<View style={pdfStyles.signatureBox}>
+							{selectedChallan.showSign ? <AuthorizedSignSvg /> : null}
+						</View>
 						<Text style={pdfStyles.footerLabel}>Authorized Signatory</Text>
 					</View>
 				</View>
@@ -638,12 +685,20 @@ export const pdfStyles = StyleSheet.create({
 	},
 	footerMiddleColumn: {
 		width: "30%",
+		alignItems: "center",
+		justifyContent: "center",
 		paddingLeft: 8,
 		paddingRight: 8,
 		borderRightWidth: 1,
 		borderRightColor: "rgba(0,0,0,0.12)",
 		paddingTop: 4,
 		paddingBottom: 4,
+	},
+	sealBox: {
+		width: 100,
+		height: 80,
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	footerRightColumn: {
 		width: "35%",
@@ -661,6 +716,12 @@ export const pdfStyles = StyleSheet.create({
 		textTransform: "uppercase",
 		fontWeight: "bold",
 	},
+	signatureBox: {
+		width: "100%",
+		height: 37,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	// DC acknowledgment styles
 	dcAcknowledgmentText: {
 		fontSize: FONT_SIZE_BASE,
@@ -668,11 +729,12 @@ export const pdfStyles = StyleSheet.create({
 		fontWeight: 600,
 		textAlign: "center",
 	},
-	dcSignatureSpace: { height: 24, marginBottom: 4 },
+	dcSignatureSpace: { height: 40, marginBottom: 8 },
 	dcSignatureLabel: {
 		fontSize: FONT_SIZE_SMALL,
 		color: "rgba(0,0,0,0.6)",
 		textAlign: "center",
+		alignItems: "flex-end",
 		fontWeight: "bold",
 	},
 	itemsFooterRow: {

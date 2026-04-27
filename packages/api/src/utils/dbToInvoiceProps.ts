@@ -84,6 +84,8 @@ export function mapInvoiceDataToInvoiceProps(
 				: String(invoiceData.createdAt)
 			: new Date().toISOString(),
 		isFinalized: invoiceData.isFinalized,
+		showSign: invoiceData.showSign ?? false,
+		showSeal: invoiceData.showSeal ?? false,
 		invoiceType: invoiceData.invoiceType,
 		lineItems: lineItemsForPdf,
 	};

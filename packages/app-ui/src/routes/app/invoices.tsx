@@ -29,6 +29,8 @@ type InvoiceFormValues = {
 	dcDate: string;
 	dcNumber: string;
 	dispatchedThrough: string;
+	showSign: boolean;
+	showSeal: boolean;
 };
 
 type BatchDetail = {
@@ -117,6 +119,10 @@ type RawInvoice = {
 	total?: number;
 	status?: string;
 	isFinalized?: boolean;
+	showSign?: boolean;
+	showSeal?: boolean;
+	show_sign?: boolean;
+	show_seal?: boolean;
 	createdAt?: string | Date;
 	updatedAt?: string | Date;
 	lineItems?: RawLineItem[];
@@ -156,6 +162,8 @@ type InvoicePayload = {
 	dispatchedThrough?: string;
 	status: string;
 	isFinalized: boolean;
+	showSign: boolean;
+	showSeal: boolean;
 	subtotalAmount: number;
 	taxAmount: number;
 	totalAmount: number;
@@ -350,6 +358,8 @@ function Invoices() {
 			dispatchedThrough: String(
 				raw.dispatchedThrough ?? raw.dispatched_through ?? "",
 			),
+			showSign: Boolean(raw.showSign ?? raw.show_sign ?? false),
+			showSeal: Boolean(raw.showSeal ?? raw.show_seal ?? false),
 		});
 		setActiveTab("edit");
 	};
@@ -423,6 +433,8 @@ function Invoices() {
 		dcDate: "",
 		dcNumber: "",
 		dispatchedThrough: "",
+		showSign: false,
+		showSeal: false,
 	};
 
 	const invoiceForm = useForm({
@@ -482,6 +494,8 @@ function Invoices() {
 				dispatchedThrough: value.dispatchedThrough || undefined,
 				status: "Draft",
 				isFinalized: false,
+				showSign: value.showSign,
+				showSeal: value.showSeal,
 				subtotalAmount: subtotalPaise,
 				taxAmount: taxPaise,
 				totalAmount: totalPaise,
@@ -548,6 +562,8 @@ function Invoices() {
 				"dispatchedThrough",
 				pendingEditValues.dispatchedThrough,
 			);
+			invoiceForm.setFieldValue("showSign", pendingEditValues.showSign);
+			invoiceForm.setFieldValue("showSeal", pendingEditValues.showSeal);
 		} else {
 			invoiceForm.reset(pendingEditValues);
 		}

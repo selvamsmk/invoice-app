@@ -20,6 +20,12 @@ export const deliveryChallan = sqliteTable(
 		isFinalized: integer("is_finalized", { mode: "boolean" })
 			.notNull()
 			.default(false),
+		showSign: integer("show_sign", { mode: "boolean" })
+			.notNull()
+			.default(sql`0`),
+		showSeal: integer("show_seal", { mode: "boolean" })
+			.notNull()
+			.default(sql`0`),
 
 		// Buyer reference and editable details
 		buyerId: text("buyer_id").notNull(), // Reference to buyer table

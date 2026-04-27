@@ -50,6 +50,20 @@
       "when": 1773644462971,
       "tag": "0006_amusing_amphibian",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1776061661599,
+      "tag": "0007_skinny_nebula",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1776070281018,
+      "tag": "0008_rapid_wendell_rand",
+      "breakpoints": true
     }
   ]
 }

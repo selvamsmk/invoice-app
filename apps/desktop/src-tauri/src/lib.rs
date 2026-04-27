@@ -25,6 +25,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
         // 🧹 Kill sidecar when window closes
         .on_window_event(|_window, event| {
             if let WindowEvent::CloseRequested { .. } = *event {
@@ -94,6 +95,33 @@ pub fn run() {
             let fonts_dir_env = fonts_dir.to_string_lossy().to_string();
 
             println!("🔧 Sidecar env DATABASE_URL={}", db_path_env);
+
+            // --- Free port 3000 if already in use ---
+            println!("🔍 Checking if port 3000 is in use...");
+            let lsof_output = std::process::Command::new("lsof")
+                .args(["-ti", "TCP:3000"])
+                .output();
+
+            match lsof_output {
+                Ok(output) if !output.stdout.is_empty() => {
+                    let pids = String::from_utf8_lossy(&output.stdout);
+                    for pid in pids.split_whitespace() {
+                        println!("⚠️  Port 3000 occupied by PID {}. Killing...", pid);
+                        let _ = std::process::Command::new("kill")
+                            .args(["-9", pid])
+                            .status();
+                    }
+                    // Give the OS a moment to release the port
+                    std::thread::sleep(std::time::Duration::from_millis(500));
+                    println!("✅ Port 3000 cleared");
+                }
+                Ok(_) => {
+                    println!("✅ Port 3000 is free");
+                }
+                Err(e) => {
+                    eprintln!("⚠️  Could not check port 3000: {:?}", e);
+                }
+            }
 
             // --- Resolve sidecar ---
             let sidecar = match handle.shell().sidecar("server") {

@@ -5,6 +5,7 @@ import LineItems from "@/components/delivery-challans/LineItems";
 import ProductSelector from "@/components/delivery-challans/ProductSelector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerInput } from "@/components/ui/date-picker";
 import { Field, FieldLabel, FieldMessage } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -151,6 +152,46 @@ export default function DeliveryChallanFormFields({
 							</Field>
 						)}
 					</form.Field>
+
+					<div className="grid grid-cols-2 gap-4">
+						<form.Field name="showSign">
+							{(field: any) => (
+								<Field>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={field.name}
+											checked={Boolean(field.state.value)}
+											onCheckedChange={(checked) =>
+												field.handleChange(checked === true)
+											}
+										/>
+										<FieldLabel htmlFor={field.name}>
+											Show Sign In PDF
+										</FieldLabel>
+									</div>
+								</Field>
+							)}
+						</form.Field>
+
+						<form.Field name="showSeal">
+							{(field: any) => (
+								<Field>
+									<div className="flex items-center gap-2">
+										<Checkbox
+											id={field.name}
+											checked={Boolean(field.state.value)}
+											onCheckedChange={(checked) =>
+												field.handleChange(checked === true)
+											}
+										/>
+										<FieldLabel htmlFor={field.name}>
+											Show Seal In PDF
+										</FieldLabel>
+									</div>
+								</Field>
+							)}
+						</form.Field>
+					</div>
 				</CardContent>
 			</Card>
 

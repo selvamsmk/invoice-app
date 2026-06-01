@@ -8,6 +8,17 @@ import {
 import { z } from "zod";
 import { publicProcedure } from "../index";
 import { renderStentInvoicePdf } from "../pdf-render";
+import {
+	archivePdfWithHardLinks,
+	deleteArchivedPdf,
+} from "../utils/invoice-archive";
+import {
+	deleteArchiveMetadata,
+	getArchiveMetadataByDocument,
+	parseLinkedPaths,
+	upsertArchiveMetadata,
+} from "../utils/invoice-archive-metadata";
+import { getConfiguredArchiveRoot } from "../utils/archive-root";
 import { mapStentInvoiceDataToInvoiceProps } from "../utils/dbToStentInvoiceProps";
 import streamToBase64 from "../utils/streamToBase64";
 
@@ -48,7 +59,12 @@ export const stentInvoicesRouter = {
 		}),
 
 	renderStentPDF: publicProcedure
-		.input(z.object({ id: z.string() }))
+		.input(
+			z.object({
+				id: z.string(),
+				archiveOnRender: z.boolean().optional(),
+			}),
+		)
 		.handler(async ({ input }) => {
 			// Load stent invoice with related data (buyer, line items, product, sizes)
 			const invoiceData = await db.query.stentInvoice.findFirst({
@@ -81,10 +97,41 @@ export const stentInvoicesRouter = {
 			);
 			// If we received a Buffer, convert directly; otherwise treat as a stream
 			let base64: string;
+			let pdfBuffer: Buffer;
 			if (Buffer.isBuffer(bufferOrStream)) {
-				base64 = (bufferOrStream as Buffer).toString("base64");
+				pdfBuffer = bufferOrStream as Buffer;
+				base64 = pdfBuffer.toString("base64");
 			} else {
 				base64 = await streamToBase64(bufferOrStream as any);
+				pdfBuffer = Buffer.from(base64, "base64");
+			}
+
+			if (input.archiveOnRender) {
+				const archiveRoot = await getConfiguredArchiveRoot();
+				const metadata = await getArchiveMetadataByDocument("stent-invoice", input.id);
+				const archiveResult = await archivePdfWithHardLinks(
+					{
+						documentId: invoiceData.id,
+						documentType: "stent-invoice",
+						documentNumber: invoiceData.invoiceNumber,
+						buyerName: invoiceData.buyerName,
+						documentDate: invoiceData.invoiceDate,
+						existingCanonicalPath: metadata?.canonicalFilePath,
+						previousLinkedPaths: parseLinkedPaths(metadata?.linkedPaths),
+					},
+					pdfBuffer,
+					{ archiveRoot: archiveRoot ?? undefined },
+				);
+
+				await upsertArchiveMetadata({
+					documentId: invoiceData.id,
+					documentType: "stent-invoice",
+					documentNumber: invoiceData.invoiceNumber,
+					buyerName: invoiceData.buyerName,
+					documentDate: invoiceData.invoiceDate,
+					canonicalFilePath: archiveResult.canonicalPath,
+					linkedPaths: archiveResult.linkedPaths,
+				});
 			}
 			return { pdfBase64: base64 };
 		}),
@@ -391,6 +438,11 @@ export const stentInvoicesRouter = {
 	deleteStentInvoice: publicProcedure
 		.input(z.object({ id: z.string() }))
 		.handler(async ({ input }) => {
+			const archiveMetadata = await getArchiveMetadataByDocument(
+				"stent-invoice",
+				input.id,
+			);
+
 			const lineItems = await db
 				.select({ id: stentInvoiceLineItem.id })
 				.from(stentInvoiceLineItem)
@@ -409,6 +461,15 @@ export const stentInvoicesRouter = {
 				.delete(stentInvoice)
 				.where(eq(stentInvoice.id, input.id))
 				.returning();
+
+			if (archiveMetadata) {
+				await deleteArchivedPdf(
+					archiveMetadata.canonicalFilePath,
+					parseLinkedPaths(archiveMetadata.linkedPaths),
+				);
+				await deleteArchiveMetadata("stent-invoice", input.id);
+			}
+
 			return deletedInvoice;
 		}),
 };

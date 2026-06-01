@@ -52,9 +52,15 @@ pub fn run() {
             std::fs::create_dir_all(&app_data_dir)?;
 
             let db_path = app_data_dir.join("invoice.db");
+            let archive_root = app
+                .path()
+                .document_dir()
+                .unwrap_or_else(|_| app_data_dir.clone())
+                .join("Invoices");
 
             println!("📁 App data dir: {:?}", app_data_dir);
             println!("🗄️ DB path: {:?}", db_path);
+            println!("🗂️ Archive root: {:?}", archive_root);
 
             // --- Resources / migrations ---
             let resource_dir = app
@@ -91,6 +97,7 @@ pub fn run() {
             println!("✅ Resources verified");
 
             let db_path_env = db_path.to_string_lossy().to_string();
+            let archive_root_env = archive_root.to_string_lossy().to_string();
             let migrations_dir_env = migrations_dir.to_string_lossy().to_string();
             let fonts_dir_env = fonts_dir.to_string_lossy().to_string();
 
@@ -141,6 +148,7 @@ pub fn run() {
             .env("ENV", "production")
             .env("SEED", "false")
             .env("DATABASE_URL", db_path_env)
+            .env("INVOICE_ARCHIVE_ROOT", archive_root_env)
             .env("MIGRATIONS_DIR", migrations_dir_env)
             .env("FONTS_DIR", fonts_dir_env)
             .env("VITE_DISABLE_AUTH", "true")

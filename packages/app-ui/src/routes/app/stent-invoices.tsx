@@ -770,7 +770,10 @@ function StentInvoices() {
 
 	const handleDownloadInvoice = async (invoice: StentInvoice) => {
 		try {
-			const resp = await renderPDFMutation.mutateAsync({ id: invoice.id });
+			const resp = await renderPDFMutation.mutateAsync({
+				id: invoice.id,
+				archiveOnRender: true,
+			});
 			if (!resp || !resp.pdfBase64) throw new Error("Failed to generate PDF");
 			const base64 = await resp.pdfBase64;
 			const byteChars = atob(base64);

@@ -44,10 +44,12 @@ Run commands from repo root unless noted.
 
 ### Tests
 - No test runner or test scripts are configured in this repo.
-- If you add tests, document the runner and single-test command here.
+- Added utility tests use Bun's built-in test runner.
+- Example single-test command:
+	- `bun test packages/api/src/utils/invoice-archive.test.ts`
 
 ### Run a single test
-- Not available (no test framework configured).
+- `bun test packages/api/src/utils/invoice-archive.test.ts`
 
 ## Coding standards
 These conventions are inferred from repo config and current code.

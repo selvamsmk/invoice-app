@@ -10,6 +10,7 @@ import * as authSchema from "./schema/auth";
 import * as buyerSchema from "./schema/buyer";
 import * as companySchema from "./schema/company";
 import * as deliveryChallanSchema from "./schema/delivery-challan";
+import * as invoiceDocumentArchiveSchema from "./schema/invoice-document-archive";
 import * as invoiceSchema from "./schema/invoice";
 import * as productSchema from "./schema/product";
 import * as stentInvoiceSchema from "./schema/stent-invoice";
@@ -44,6 +45,7 @@ const schema = {
 	...invoiceSchema,
 	...stentInvoiceSchema,
 	...deliveryChallanSchema,
+	...invoiceDocumentArchiveSchema,
 	...appSettingsSchema,
 	...appSeedsSchema,
 };
@@ -72,6 +74,7 @@ export * from "./schema/auth";
 export * from "./schema/buyer";
 export * from "./schema/company";
 export * from "./schema/delivery-challan";
+export * from "./schema/invoice-document-archive";
 export * from "./schema/invoice";
 export * from "./schema/product";
 export * from "./schema/stent-invoice";

@@ -562,7 +562,10 @@ function DeliveryChallans() {
 
 	const handleDownloadChallan = async (challan: DeliveryChallan) => {
 		try {
-			const resp = await renderPDFMutation.mutateAsync({ id: challan.id });
+			const resp = await renderPDFMutation.mutateAsync({
+				id: challan.id,
+				archiveOnRender: true,
+			});
 			if (!resp || !resp.pdfBase64) throw new Error("Failed to generate PDF");
 			const base64 = await resp.pdfBase64;
 			const byteChars = atob(base64);

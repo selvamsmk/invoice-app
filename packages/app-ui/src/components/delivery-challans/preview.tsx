@@ -65,7 +65,10 @@ export default function DeliveryChallanPreview({
 		if (!challanId) return;
 		setIsGeneratingPDF(true);
 		try {
-			const resp = await renderPDFMutation.mutateAsync({ id: challanId });
+			const resp = await renderPDFMutation.mutateAsync({
+				id: challanId,
+				archiveOnRender: true,
+			});
 			if (!resp || !resp.pdfBase64) throw new Error("Failed to generate PDF");
 			const base64 = await resp.pdfBase64;
 			const byteChars = atob(base64);

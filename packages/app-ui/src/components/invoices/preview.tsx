@@ -69,6 +69,7 @@ export function InvoicePreview({ selectedInvoice }: InvoicePreviewProps) {
 			try {
 				const resp = await renderPDFMutation.mutateAsync({
 					id: selectedInvoice.id,
+								archiveOnRender: true,
 				});
 				if (!resp || !resp.pdfBase64) return;
 				const base64 = await resp.pdfBase64;

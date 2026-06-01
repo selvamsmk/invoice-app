@@ -8,46 +8,20 @@ import {
 import { z } from "zod";
 import { publicProcedure } from "../index";
 import { renderDeliveryChallanPdf } from "../pdf-render";
+import {
+	archivePdfWithHardLinks,
+	deleteArchivedPdf,
+} from "../utils/invoice-archive";
+import {
+	deleteArchiveMetadata,
+	getArchiveMetadataByDocument,
+	parseLinkedPaths,
+	upsertArchiveMetadata,
+} from "../utils/invoice-archive-metadata";
+import { getConfiguredArchiveRoot } from "../utils/archive-root";
+import { mapDeliveryChallanDataToChallanProps } from "../utils/dbToDeliveryChallanProps";
 import type { DeliveryChallanProps } from "../pdf-template/delivery-challan-document";
 import streamToBase64 from "../utils/streamToBase64";
-
-// Helper function to map DB data to PDF props
-function mapDeliveryChallanDataToChallanProps(
-	challanData: any,
-): DeliveryChallanProps {
-	return {
-		id: challanData.id,
-		challanNumber: challanData.challanNumber,
-		challanDate: challanData.challanDate,
-		dcDate: challanData.dcDate ?? undefined,
-		dcNumber: challanData.dcNumber ?? undefined,
-		dispatchedThrough: challanData.dispatchedThrough ?? undefined,
-		buyerName: challanData.buyerName,
-		buyerAddressLine1: challanData.buyerAddressLine1,
-		buyerAddressLine2: challanData.buyerAddressLine2 ?? undefined,
-		buyerCity: challanData.buyerCity,
-		buyerState: challanData.buyerState,
-		buyerPincode: challanData.buyerPincode,
-		buyerPhone: challanData.buyerMobileNumber ?? undefined,
-		buyerGstin: challanData.buyerGstin ?? undefined,
-		showSign: challanData.showSign ?? false,
-		showSeal: challanData.showSeal ?? false,
-		lineItems: (challanData.lineItems || []).map((li: any) => ({
-			id: li.id,
-			name: li.productName,
-			hsnCode: li.hsnCode,
-			quantity: (li.batches || []).reduce(
-				(sum: number, b: any) => sum + (b.quantity || 0),
-				0,
-			),
-			batches: (li.batches || []).map((b: any) => ({
-				batchNo: b.batchNo ?? undefined,
-				expiryDate: b.expiryDate ?? undefined,
-				quantity: b.quantity,
-			})),
-		})),
-	};
-}
 
 export const deliveryChallansRouter = {
 	listDeliveryChallans: publicProcedure.handler(async () => {
@@ -86,7 +60,12 @@ export const deliveryChallansRouter = {
 		}),
 
 	renderDcPDF: publicProcedure
-		.input(z.object({ id: z.string() }))
+		.input(
+			z.object({
+				id: z.string(),
+				archiveOnRender: z.boolean().optional(),
+			}),
+		)
 		.handler(async ({ input }) => {
 			const challanData = await db.query.deliveryChallan.findFirst({
 				where: eq(deliveryChallan.id, input.id),
@@ -113,10 +92,44 @@ export const deliveryChallansRouter = {
 				companyData ?? undefined,
 			);
 			let base64: string;
+			let pdfBuffer: Buffer;
 			if (Buffer.isBuffer(bufferOrStream)) {
-				base64 = (bufferOrStream as Buffer).toString("base64");
+				pdfBuffer = bufferOrStream as Buffer;
+				base64 = pdfBuffer.toString("base64");
 			} else {
 				base64 = await streamToBase64(bufferOrStream as any);
+				pdfBuffer = Buffer.from(base64, "base64");
+			}
+
+			if (input.archiveOnRender) {
+				const archiveRoot = await getConfiguredArchiveRoot();
+				const metadata = await getArchiveMetadataByDocument(
+					"delivery-challan",
+					input.id,
+				);
+				const archiveResult = await archivePdfWithHardLinks(
+					{
+						documentId: challanData.id,
+						documentType: "delivery-challan",
+						documentNumber: challanData.challanNumber,
+						buyerName: challanData.buyerName,
+						documentDate: challanData.challanDate,
+						existingCanonicalPath: metadata?.canonicalFilePath,
+						previousLinkedPaths: parseLinkedPaths(metadata?.linkedPaths),
+					},
+					pdfBuffer,
+					{ archiveRoot: archiveRoot ?? undefined },
+				);
+
+				await upsertArchiveMetadata({
+					documentId: challanData.id,
+					documentType: "delivery-challan",
+					documentNumber: challanData.challanNumber,
+					buyerName: challanData.buyerName,
+					documentDate: challanData.challanDate,
+					canonicalFilePath: archiveResult.canonicalPath,
+					linkedPaths: archiveResult.linkedPaths,
+				});
 			}
 			return { pdfBase64: base64 };
 		}),
@@ -357,6 +370,11 @@ export const deliveryChallansRouter = {
 	deleteDeliveryChallan: publicProcedure
 		.input(z.object({ id: z.string() }))
 		.handler(async ({ input }) => {
+			const archiveMetadata = await getArchiveMetadataByDocument(
+				"delivery-challan",
+				input.id,
+			);
+
 			const lineItems = await db
 				.select({ id: deliveryChallanLineItem.id })
 				.from(deliveryChallanLineItem)
@@ -375,6 +393,15 @@ export const deliveryChallansRouter = {
 				.delete(deliveryChallan)
 				.where(eq(deliveryChallan.id, input.id))
 				.returning();
+
+			if (archiveMetadata) {
+				await deleteArchivedPdf(
+					archiveMetadata.canonicalFilePath,
+					parseLinkedPaths(archiveMetadata.linkedPaths),
+				);
+				await deleteArchiveMetadata("delivery-challan", input.id);
+			}
+
 			return deletedChallan;
 		}),
 };

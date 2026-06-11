@@ -834,8 +834,8 @@ function StentInvoices() {
 				value={activeTab}
 				onValueChange={(v) => setActiveTab(v)}
 			>
-                <div className="mb-3 flex shrink-0 items-center gap-3">
-				    <Activity className="h-8 w-8 text-primary" />
+				<div className="mb-3 flex shrink-0 items-center gap-3">
+					<Activity className="h-8 w-8 text-primary" />
 					<div>
 						<h2 className="font-semibold text-lg">Stent Invoices</h2>
 						<p className="text-muted-foreground text-sm">
@@ -849,7 +849,7 @@ function StentInvoices() {
 					<TabsList className="flex items-center gap-2">
 						<TabsTrigger value="list" className="flex items-center gap-2">
 							<List className="h-4 w-4" />
-                            List
+							List
 						</TabsTrigger>
 
 						<TabsTrigger

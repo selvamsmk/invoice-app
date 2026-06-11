@@ -13,7 +13,9 @@ export const dashboardRouter = {
 		] = await Promise.all([
 			db.select({ count: sql<number>`count(*)` }).from(invoice),
 			db.select({ count: sql<number>`count(*)` }).from(stentInvoice),
-			db.select({ total: sql<number>`sum(${invoice.totalAmount})` }).from(invoice),
+			db
+				.select({ total: sql<number>`sum(${invoice.totalAmount})` })
+				.from(invoice),
 			db
 				.select({ total: sql<number>`sum(${stentInvoice.totalAmount})` })
 				.from(stentInvoice),
@@ -52,7 +54,9 @@ export const dashboardRouter = {
 			})),
 		]
 			.sort((a, b) => {
-				const toTimestamp = (value: Date | string | number | null | undefined) => {
+				const toTimestamp = (
+					value: Date | string | number | null | undefined,
+				) => {
 					if (value instanceof Date) return value.getTime();
 					if (typeof value === "number") return value;
 					if (typeof value === "string") return new Date(value).getTime();

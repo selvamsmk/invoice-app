@@ -2,9 +2,9 @@ import { Plus, X } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { DatePickerInput } from "@/components/ui/date-picker";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { DatePickerInput } from "@/components/ui/date-picker";
 import {
 	Select,
 	SelectContent,
@@ -127,7 +127,9 @@ export default function StentLineItems({
 									<FieldLabel>Date *</FieldLabel>
 									<DatePickerInput
 										value={item.patientDate}
-										onChange={(value) => onChange(item.id, "patientDate", value)}
+										onChange={(value) =>
+											onChange(item.id, "patientDate", value)
+										}
 										placeholder="Select date"
 									/>
 								</Field>

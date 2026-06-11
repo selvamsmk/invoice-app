@@ -1,9 +1,4 @@
-import {
-	and,
-	db,
-	eq,
-	invoiceDocumentArchive,
-} from "@invoice-app/db";
+import { and, db, eq, invoiceDocumentArchive } from "@invoice-app/db";
 import type { ArchiveDocumentType } from "./invoice-archive";
 
 type ArchiveMetadataInsert = {

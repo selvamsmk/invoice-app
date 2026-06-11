@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
 	Activity,
 	Building,
+	FileSpreadsheet,
 	FileText,
 	LayoutDashboard,
 	LogOut,
@@ -45,6 +46,11 @@ const items = [
 		title: "Delivery Challan",
 		url: "/app/delivery-challans",
 		icon: Truck,
+	},
+	{
+		title: "Supply Statement",
+		url: "/app/supply-statement",
+		icon: FileSpreadsheet,
 	},
 	{
 		title: "Products",

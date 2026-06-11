@@ -26,7 +26,9 @@ export const Route = createFileRoute("/app/settings")({
 function SettingsPage() {
 	const { orpc } = useAppContext();
 
-	const invoiceExportDirQuery = useQuery(orpc.getInvoiceExportDir.queryOptions());
+	const invoiceExportDirQuery = useQuery(
+		orpc.getInvoiceExportDir.queryOptions(),
+	);
 	const archiveIntegrityQuery = useQuery(
 		orpc.getArchiveIntegrityStatus.queryOptions(),
 	);
@@ -152,7 +154,9 @@ function SettingsPage() {
 				<CardContent className="space-y-4">
 					<div className="rounded-md border bg-muted/30 p-3">
 						<p className="text-muted-foreground text-sm">Archive root in use</p>
-						<p className="break-all font-mono text-sm">{effectiveArchiveRoot}</p>
+						<p className="break-all font-mono text-sm">
+							{effectiveArchiveRoot}
+						</p>
 					</div>
 
 					<div className="grid gap-3 md:grid-cols-3">
@@ -161,7 +165,7 @@ function SettingsPage() {
 							<p className="font-semibold text-lg">
 								{archiveIntegrityQuery.isLoading
 									? "..."
-									: integrity?.totalDocuments ?? 0}
+									: (integrity?.totalDocuments ?? 0)}
 							</p>
 						</div>
 						<div className="rounded-md border p-3">
@@ -169,7 +173,7 @@ function SettingsPage() {
 							<p className="font-semibold text-green-700 text-lg">
 								{archiveIntegrityQuery.isLoading
 									? "..."
-									: integrity?.healthyDocuments ?? 0}
+									: (integrity?.healthyDocuments ?? 0)}
 							</p>
 						</div>
 						<div className="rounded-md border p-3">
@@ -177,7 +181,7 @@ function SettingsPage() {
 							<p className="font-semibold text-destructive text-lg">
 								{archiveIntegrityQuery.isLoading
 									? "..."
-									: integrity?.issuesCount ?? 0}
+									: (integrity?.issuesCount ?? 0)}
 							</p>
 						</div>
 					</div>
@@ -191,7 +195,9 @@ function SettingsPage() {
 						</div>
 						<div className="rounded-md border p-3">
 							<p className="text-muted-foreground text-xs">Missing links</p>
-							<p className="font-medium text-sm">{integrity?.missingLinksCount ?? 0}</p>
+							<p className="font-medium text-sm">
+								{integrity?.missingLinksCount ?? 0}
+							</p>
 						</div>
 						<div className="rounded-md border p-3">
 							<p className="text-muted-foreground text-xs">Mismatched links</p>
@@ -243,7 +249,9 @@ function SettingsPage() {
 										className="rounded-md border p-3"
 									>
 										<div className="flex items-center justify-between gap-3">
-											<p className="font-medium text-sm">{item.documentNumber}</p>
+											<p className="font-medium text-sm">
+												{item.documentNumber}
+											</p>
 											{item.isHealthy ? (
 												<span className="text-green-700 text-xs">Healthy</span>
 											) : (
@@ -254,11 +262,13 @@ function SettingsPage() {
 											)}
 										</div>
 										<p className="text-muted-foreground text-xs">
-											{item.documentType} • {item.buyerName} • {item.documentDate}
+											{item.documentType} • {item.buyerName} •{" "}
+											{item.documentDate}
 										</p>
 										{!item.isHealthy ? (
 											<p className="text-destructive text-xs">
-												Missing: {item.missingPathCount}, Mismatched: {item.mismatchedPathCount}
+												Missing: {item.missingPathCount}, Mismatched:{" "}
+												{item.mismatchedPathCount}
 											</p>
 										) : null}
 									</div>

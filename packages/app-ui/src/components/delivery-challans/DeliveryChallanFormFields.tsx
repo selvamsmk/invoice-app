@@ -138,9 +138,7 @@ export default function DeliveryChallanFormFields({
 					<form.Field name="dispatchedThrough">
 						{(field: any) => (
 							<Field>
-								<FieldLabel htmlFor={field.name}>
-									Dispatched Through
-								</FieldLabel>
+								<FieldLabel htmlFor={field.name}>Dispatched Through</FieldLabel>
 								<Input
 									id={field.name}
 									name={field.name}

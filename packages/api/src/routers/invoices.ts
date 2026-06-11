@@ -10,6 +10,8 @@ import {
 import { z } from "zod";
 import { publicProcedure } from "../index";
 import renderInvoicePdf from "../pdf-render";
+import { getConfiguredArchiveRoot } from "../utils/archive-root";
+import { mapInvoiceDataToInvoiceProps } from "../utils/dbToInvoiceProps";
 import {
 	archivePdfWithHardLinks,
 	deleteArchivedPdf,
@@ -23,8 +25,6 @@ import {
 	parseLinkedPaths,
 	upsertArchiveMetadata,
 } from "../utils/invoice-archive-metadata";
-import { getConfiguredArchiveRoot } from "../utils/archive-root";
-import { mapInvoiceDataToInvoiceProps } from "../utils/dbToInvoiceProps";
 import streamToBase64 from "../utils/streamToBase64";
 
 export const invoicesRouter = {
@@ -112,7 +112,10 @@ export const invoicesRouter = {
 
 			if (input.archiveOnRender) {
 				const archiveRoot = await getConfiguredArchiveRoot();
-				const metadata = await getArchiveMetadataByDocument("invoice", input.id);
+				const metadata = await getArchiveMetadataByDocument(
+					"invoice",
+					input.id,
+				);
 				const archiveResult = await archivePdfWithHardLinks(
 					{
 						documentId: invoiceData.id,

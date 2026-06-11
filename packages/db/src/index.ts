@@ -2,16 +2,16 @@ import { Database } from "bun:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import { drizzle } from "drizzle-orm/bun-sqlite";
-import { EnhancedQueryLogger } from 'drizzle-query-logger';
-import * as appSettingsSchema from "./schema/app_settings";
+import { EnhancedQueryLogger } from "drizzle-query-logger";
 import * as appSeedsSchema from "./schema/app_seeds";
+import * as appSettingsSchema from "./schema/app_settings";
 // --- Schemas ---
 import * as authSchema from "./schema/auth";
 import * as buyerSchema from "./schema/buyer";
 import * as companySchema from "./schema/company";
 import * as deliveryChallanSchema from "./schema/delivery-challan";
-import * as invoiceDocumentArchiveSchema from "./schema/invoice-document-archive";
 import * as invoiceSchema from "./schema/invoice";
+import * as invoiceDocumentArchiveSchema from "./schema/invoice-document-archive";
 import * as productSchema from "./schema/product";
 import * as stentInvoiceSchema from "./schema/stent-invoice";
 
@@ -51,7 +51,11 @@ const schema = {
 };
 
 // --- Export ---
-export const db = drizzle({ client, schema, logger: isDev ? new EnhancedQueryLogger() : undefined });
+export const db = drizzle({
+	client,
+	schema,
+	logger: isDev ? new EnhancedQueryLogger() : undefined,
+});
 
 export {
 	and,
@@ -68,13 +72,13 @@ export {
 	sql,
 } from "drizzle-orm";
 export { migrate } from "drizzle-orm/bun-sqlite/migrator";
-export * from "./schema/app_settings";
 export * from "./schema/app_seeds";
+export * from "./schema/app_settings";
 export * from "./schema/auth";
 export * from "./schema/buyer";
 export * from "./schema/company";
 export * from "./schema/delivery-challan";
-export * from "./schema/invoice-document-archive";
 export * from "./schema/invoice";
+export * from "./schema/invoice-document-archive";
 export * from "./schema/product";
 export * from "./schema/stent-invoice";

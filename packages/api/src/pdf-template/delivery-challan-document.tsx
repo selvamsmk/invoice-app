@@ -8,10 +8,10 @@ import {
 	Text,
 	View,
 } from "@react-pdf/renderer";
-import { formatDate, formatExpiry } from "../utils/pdf-utils";
-import { registerFonts } from "../utils/registerFonts";
 import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
 import { SIGN_PATH_D } from "../svg/sign";
+import { formatDate, formatExpiry } from "../utils/pdf-utils";
+import { registerFonts } from "../utils/registerFonts";
 
 registerFonts();
 
@@ -183,7 +183,9 @@ export function DeliveryChallanDocument({
 					<View style={pdfStyles.infoRow}>
 						<View style={[pdfStyles.infoColumn, pdfStyles.billToColumn]}>
 							<Text style={pdfStyles.sectionTitle}>Bill To</Text>
-						<Text style={{ fontWeight: "bold" }}>{selectedChallan.buyerName}</Text>
+							<Text style={{ fontWeight: "bold" }}>
+								{selectedChallan.buyerName}
+							</Text>
 							{selectedChallan.buyerAddressLine1 && (
 								<Text>{selectedChallan.buyerAddressLine1}</Text>
 							)}
@@ -227,7 +229,7 @@ export function DeliveryChallanDocument({
 										{formatDate(selectedChallan.challanDate)}
 									</Text>
 								</View>
-                                <View style={pdfStyles.metaRow}>
+								<View style={pdfStyles.metaRow}>
 									<Text style={pdfStyles.metaLabel}>Dispatched through</Text>
 									<Text style={pdfStyles.metaColon}>:</Text>
 									<Text style={pdfStyles.metaValue}>

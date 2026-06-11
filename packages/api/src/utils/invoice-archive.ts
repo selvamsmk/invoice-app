@@ -10,7 +10,10 @@ const DOCUMENT_TYPE_FILE_LABEL: Record<ArchiveDocumentType, string> = {
 	"delivery-challan": "DC",
 };
 
-export type ArchiveDocumentType = "invoice" | "stent-invoice" | "delivery-challan";
+export type ArchiveDocumentType =
+	| "invoice"
+	| "stent-invoice"
+	| "delivery-challan";
 
 export type ArchiveRecord = {
 	documentId: string;
@@ -90,7 +93,8 @@ function formatDatePart(date: Date): string {
 }
 
 function resolveArchiveRoot(overrideArchiveRoot?: string): string {
-	const configuredRoot = overrideArchiveRoot?.trim() || process.env.INVOICE_ARCHIVE_ROOT?.trim();
+	const configuredRoot =
+		overrideArchiveRoot?.trim() || process.env.INVOICE_ARCHIVE_ROOT?.trim();
 	if (configuredRoot) {
 		return path.resolve(configuredRoot);
 	}
@@ -105,7 +109,11 @@ function buildCanonicalFileName(record: ArchiveRecord): string {
 	return `${formatDatePart(documentDate)}_${normalizedBuyerName}_${typeLabel}-${normalizedNumber}.pdf`;
 }
 
-function getArchivePaths(record: ArchiveRecord, archiveRoot: string, fileName: string) {
+function getArchivePaths(
+	record: ArchiveRecord,
+	archiveRoot: string,
+	fileName: string,
+) {
 	const documentDate = parseDate(record.documentDate);
 	const year = String(documentDate.getFullYear());
 	const month = formatMonthFolder(documentDate);
@@ -187,7 +195,10 @@ async function relocateCanonicalPath(
 	await unlinkIfExists(fromPath);
 }
 
-async function ensureHardLink(canonicalPath: string, linkPath: string): Promise<boolean> {
+async function ensureHardLink(
+	canonicalPath: string,
+	linkPath: string,
+): Promise<boolean> {
 	await ensureParentDirectory(linkPath);
 	try {
 		const [canonicalStat, linkedStat] = await Promise.all([
@@ -360,7 +371,11 @@ export async function rebuildArchiveViews(
 
 	for (const record of records) {
 		const canonicalFileName = path.basename(record.canonicalFilePath);
-		const { desiredLinkedPaths } = getArchivePaths(record, archiveRoot, canonicalFileName);
+		const { desiredLinkedPaths } = getArchivePaths(
+			record,
+			archiveRoot,
+			canonicalFileName,
+		);
 
 		for (const linkPath of desiredLinkedPaths) {
 			await ensureHardLink(record.canonicalFilePath, linkPath);

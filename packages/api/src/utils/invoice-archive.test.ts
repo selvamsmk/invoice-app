@@ -10,7 +10,10 @@ import {
 
 let tempRoot = "";
 
-async function copyDirectory(sourceDir: string, destinationDir: string): Promise<void> {
+async function copyDirectory(
+	sourceDir: string,
+	destinationDir: string,
+): Promise<void> {
 	await fs.mkdir(destinationDir, { recursive: true });
 	const entries = await fs.readdir(sourceDir, { withFileTypes: true });
 	for (const entry of entries) {
@@ -26,7 +29,9 @@ async function copyDirectory(sourceDir: string, destinationDir: string): Promise
 
 describe("invoice hard-link archive", () => {
 	beforeEach(async () => {
-		tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "invoice-archive-test-"));
+		tempRoot = await fs.mkdtemp(
+			path.join(os.tmpdir(), "invoice-archive-test-"),
+		);
 		process.env.INVOICE_ARCHIVE_ROOT = tempRoot;
 	});
 
@@ -119,7 +124,9 @@ describe("invoice hard-link archive", () => {
 			Buffer.from("dc-pdf"),
 		);
 
-		const periodPath = result.linkedPaths.find((entry) => entry.includes("By_Period"));
+		const periodPath = result.linkedPaths.find((entry) =>
+			entry.includes("By_Period"),
+		);
 		expect(periodPath).toBeTruthy();
 		expect(path.basename(result.canonicalPath)).toBe(
 			"2026-04-27_Buyer_Three_DC-12.pdf",

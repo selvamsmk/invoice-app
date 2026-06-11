@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { AlertTriangle, Loader, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function SidecarStatus() {
-	const [status, setStatus] = useState<"unknown" | "started" | "healthy" | "error">("unknown");
+	const [status, setStatus] = useState<
+		"unknown" | "started" | "healthy" | "error"
+	>("unknown");
 	const [errorMsg, setErrorMsg] = useState<string>("");
 	const [logs, setLogs] = useState<string[]>([]);
 
@@ -31,7 +33,12 @@ export function SidecarStatus() {
 				setLogs((prev) => [...prev.slice(-4), event.payload]);
 			});
 
-			unlisteners = [unlistenStatus, unlistenError, unlistenStderr, unlistenStdout];
+			unlisteners = [
+				unlistenStatus,
+				unlistenError,
+				unlistenStderr,
+				unlistenStdout,
+			];
 		};
 
 		setup().catch((err) => {
@@ -55,7 +62,7 @@ export function SidecarStatus() {
 						<Loader className="h-6 w-6 animate-spin text-blue-500" />
 						<div className="flex-1">
 							<h2 className="font-semibold text-lg">Starting Server...</h2>
-							<p className="text-muted-foreground mt-2">
+							<p className="mt-2 text-muted-foreground">
 								The backend server is initializing. Please wait.
 							</p>
 						</div>
@@ -64,17 +71,22 @@ export function SidecarStatus() {
 
 				{status === "error" && (
 					<div className="flex items-start gap-4">
-						<XCircle className="h-6 w-6 text-red-500 shrink-0 mt-1" />
+						<XCircle className="mt-1 h-6 w-6 shrink-0 text-red-500" />
 						<div className="flex-1">
-							<h2 className="font-semibold text-lg text-red-600">Server Error</h2>
-							<p className="text-muted-foreground mt-2 text-sm">{errorMsg}</p>
+							<h2 className="font-semibold text-lg text-red-600">
+								Server Error
+							</h2>
+							<p className="mt-2 text-muted-foreground text-sm">{errorMsg}</p>
 
 							{logs.length > 0 && (
 								<div className="mt-4">
-									<h4 className="font-medium text-sm mb-2">Recent Logs:</h4>
-									<div className="bg-slate-100 dark:bg-slate-800 p-3 rounded font-mono text-xs max-h-32 overflow-y-auto">
+									<h4 className="mb-2 font-medium text-sm">Recent Logs:</h4>
+									<div className="max-h-32 overflow-y-auto rounded bg-slate-100 p-3 font-mono text-xs dark:bg-slate-800">
 										{logs.map((log, i) => (
-											<div key={i} className="text-red-600 dark:text-red-400 whitespace-pre-wrap break-words">
+											<div
+												key={i}
+												className="whitespace-pre-wrap break-words text-red-600 dark:text-red-400"
+											>
 												{log}
 											</div>
 										))}
@@ -82,11 +94,14 @@ export function SidecarStatus() {
 								</div>
 							)}
 
-							<div className="mt-4 p-3 bg-amber-100 dark:bg-amber-900/30 rounded text-sm text-amber-800 dark:text-amber-300">
-								<AlertTriangle className="inline h-4 w-4 mr-2" />
+							<div className="mt-4 rounded bg-amber-100 p-3 text-amber-800 text-sm dark:bg-amber-900/30 dark:text-amber-300">
+								<AlertTriangle className="mr-2 inline h-4 w-4" />
 								<strong>Troubleshooting:</strong>
-								<ul className="mt-2 list-disc list-inside space-y-1">
-									<li>Check if port 3000 is available: <code className="bg-amber-200/50 px-1">lsof -i :3000</code></li>
+								<ul className="mt-2 list-inside list-disc space-y-1">
+									<li>
+										Check if port 3000 is available:{" "}
+										<code className="bg-amber-200/50 px-1">lsof -i :3000</code>
+									</li>
 									<li>Ensure the app has permissions to access the database</li>
 									<li>Try restarting the application</li>
 									<li>Check system logs if error persists</li>

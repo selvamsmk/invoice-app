@@ -8,6 +8,9 @@ import InvoiceDocument, {
 import StentInvoiceDocument, {
 	type StentInvoiceProps,
 } from "./pdf-template/stent-invoice-document";
+import SupplyStatementDocument, {
+	type SupplyStatementProps,
+} from "./pdf-template/supply-statement-document";
 
 export async function renderInvoicePdf(
 	selectedInvoice: InvoiceProps,
@@ -44,6 +47,20 @@ export async function renderDeliveryChallanPdf(
 	const doc = (
 		<DeliveryChallanDocument
 			selectedChallan={selectedChallan}
+			companyData={companyData}
+		/>
+	);
+	const buffer = await pdf(doc).toBuffer();
+	return buffer;
+}
+
+export async function renderSupplyStatementPdf(
+	selectedStatement: SupplyStatementProps,
+	companyData: any,
+) {
+	const doc = (
+		<SupplyStatementDocument
+			selectedStatement={selectedStatement}
 			companyData={companyData}
 		/>
 	);

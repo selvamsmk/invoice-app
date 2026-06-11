@@ -1,9 +1,9 @@
-import { useDragAndDrop } from "fluid-dnd/react";
 import type { Buyer, DeliveryChallan, Product } from "@invoice-app/api";
 import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Edit as EditIcon, Eye, FileText, Plus, List } from "lucide-react";
+import { useDragAndDrop } from "fluid-dnd/react";
+import { Edit as EditIcon, Eye, FileText, List, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeliveryChallanFormFields from "@/components/delivery-challans/DeliveryChallanFormFields";
@@ -165,9 +165,7 @@ function DeliveryChallans() {
 	} = useDeliveryChallans();
 
 	// Add renderPDF mutation
-	const renderPDFMutation = useMutation(
-		orpc.renderDcPDF.mutationOptions(),
-	);
+	const renderPDFMutation = useMutation(orpc.renderDcPDF.mutationOptions());
 
 	useEffect(() => {
 		if (challansQuery.data) {
@@ -284,10 +282,15 @@ function DeliveryChallans() {
 			challanDate: normalizeDateInput(
 				raw.challanDate ?? raw.challan_date ?? challan.challanDate ?? "",
 			),
-			dcDate: normalizeDateInput(raw.dcDate ?? raw.dc_date ?? challan.dcDate ?? ""),
+			dcDate: normalizeDateInput(
+				raw.dcDate ?? raw.dc_date ?? challan.dcDate ?? "",
+			),
 			dcNumber: String(raw.dcNumber ?? raw.dc_number ?? challan.dcNumber ?? ""),
 			dispatchedThrough: String(
-				raw.dispatchedThrough ?? raw.dispatched_through ?? challan.dispatchedThrough ?? "",
+				raw.dispatchedThrough ??
+					raw.dispatched_through ??
+					challan.dispatchedThrough ??
+					"",
 			),
 			showSign: Boolean(raw.showSign ?? raw.show_sign ?? false),
 			showSeal: Boolean(raw.showSeal ?? raw.show_seal ?? false),
@@ -621,47 +624,55 @@ function DeliveryChallans() {
 				onValueChange={setActiveTab}
 			>
 				<div className="mb-6 flex items-center justify-between">
-				<div className="flex shrink-0 items-center gap-3">
-					<FileText className="h-8 w-8" />
-					<div className="flex flex-col">
-						<h1 className="font-bold text-3xl">Delivery Challans</h1>
-						<p className="text-sm text-muted-foreground">Manage and track your delivery challans</p>
+					<div className="flex shrink-0 items-center gap-3">
+						<FileText className="h-8 w-8" />
+						<div className="flex flex-col">
+							<h1 className="font-bold text-3xl">Delivery Challans</h1>
+							<p className="text-muted-foreground text-sm">
+								Manage and track your delivery challans
+							</p>
+						</div>
 					</div>
-				</div>
-						{activeTab === "list" && (
-                        <Button onClick={handleCreateChallanClick}>
+					{activeTab === "list" && (
+						<Button onClick={handleCreateChallanClick}>
 							<Plus className="mr-2 h-4 w-4" />
 							Create Delivery Challan
 						</Button>
 					)}
 				</div>
 
-                <TabsList className="mb-3 flex items-center gap-2">
-                    <TabsTrigger value="list" className="min-w-24 flex items-center gap-2">
-                        <List className="h-4 w-4" />
-                        List
-                    </TabsTrigger>
-                    <TabsTrigger value="create" className="min-w-24 flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Create
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="edit"
-                        disabled={!editingChallanId}
-                        className={`min-w-24 flex items-center gap-2 ${!editingChallanId ? "pointer-events-none opacity-50" : ""}`}
-                        aria-disabled={!editingChallanId}
-                    >
-                        <EditIcon className="h-4 w-4" />
-                        Edit
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="preview"
-                        disabled={!selectedChallan}
-                        className={`min-w-24 flex items-center gap-2 ${!selectedChallan ? "pointer-events-none opacity-50" : ""}`}
-                        aria-disabled={!selectedChallan}
-                    >
-                        <Eye className="h-4 w-4" />
-                            Preview
+				<TabsList className="mb-3 flex items-center gap-2">
+					<TabsTrigger
+						value="list"
+						className="flex min-w-24 items-center gap-2"
+					>
+						<List className="h-4 w-4" />
+						List
+					</TabsTrigger>
+					<TabsTrigger
+						value="create"
+						className="flex min-w-24 items-center gap-2"
+					>
+						<Plus className="h-4 w-4" />
+						Create
+					</TabsTrigger>
+					<TabsTrigger
+						value="edit"
+						disabled={!editingChallanId}
+						className={`flex min-w-24 items-center gap-2 ${!editingChallanId ? "pointer-events-none opacity-50" : ""}`}
+						aria-disabled={!editingChallanId}
+					>
+						<EditIcon className="h-4 w-4" />
+						Edit
+					</TabsTrigger>
+					<TabsTrigger
+						value="preview"
+						disabled={!selectedChallan}
+						className={`flex min-w-24 items-center gap-2 ${!selectedChallan ? "pointer-events-none opacity-50" : ""}`}
+						aria-disabled={!selectedChallan}
+					>
+						<Eye className="h-4 w-4" />
+						Preview
 					</TabsTrigger>
 				</TabsList>
 
@@ -752,7 +763,10 @@ function DeliveryChallans() {
 				>
 					<div className="min-h-0 flex-1 overflow-y-auto pr-1">
 						{selectedChallan && (
-							<DeliveryChallanPreview challanId={selectedChallan.id} />
+							<DeliveryChallanPreview
+								challanId={selectedChallan.id}
+								challanNumber={selectedChallan.challanNumber}
+							/>
 						)}
 					</div>
 				</TabsContent>

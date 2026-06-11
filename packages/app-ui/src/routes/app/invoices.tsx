@@ -3,7 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useDragAndDrop } from "fluid-dnd/react";
-import { Edit as EditIcon, Eye, FileText, Plus, List } from "lucide-react";
+import { Edit as EditIcon, Eye, FileText, List, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import InvoiceFormFields from "@/components/invoices/InvoiceFormFields";

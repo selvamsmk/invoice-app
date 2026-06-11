@@ -8,6 +8,8 @@ import {
 import { z } from "zod";
 import { publicProcedure } from "../index";
 import { renderStentInvoicePdf } from "../pdf-render";
+import { getConfiguredArchiveRoot } from "../utils/archive-root";
+import { mapStentInvoiceDataToInvoiceProps } from "../utils/dbToStentInvoiceProps";
 import {
 	archivePdfWithHardLinks,
 	deleteArchivedPdf,
@@ -18,8 +20,6 @@ import {
 	parseLinkedPaths,
 	upsertArchiveMetadata,
 } from "../utils/invoice-archive-metadata";
-import { getConfiguredArchiveRoot } from "../utils/archive-root";
-import { mapStentInvoiceDataToInvoiceProps } from "../utils/dbToStentInvoiceProps";
 import streamToBase64 from "../utils/streamToBase64";
 
 export const stentInvoicesRouter = {
@@ -108,7 +108,10 @@ export const stentInvoicesRouter = {
 
 			if (input.archiveOnRender) {
 				const archiveRoot = await getConfiguredArchiveRoot();
-				const metadata = await getArchiveMetadataByDocument("stent-invoice", input.id);
+				const metadata = await getArchiveMetadataByDocument(
+					"stent-invoice",
+					input.id,
+				);
 				const archiveResult = await archivePdfWithHardLinks(
 					{
 						documentId: invoiceData.id,

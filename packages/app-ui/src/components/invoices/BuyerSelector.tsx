@@ -1,16 +1,17 @@
 import type { Buyer } from "@invoice-app/api";
 import { X } from "lucide-react";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	Combobox,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxList,
+} from "@/components/ui/combobox";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 
 type Props = {
 	buyers?: Buyer[] | undefined;
@@ -50,34 +51,32 @@ export default function BuyerSelector({
 			{!selectedBuyer ? (
 				<div>
 					<p className="mb-4 text-muted-foreground text-sm">
-						Select a buyer from the list below:
+						Search and select a buyer from the list below:
 					</p>
-					<Select
-						onValueChange={(value) => {
-							const buyer = uniqueBuyers.find((b) => b.id === value);
+					<Combobox
+						items={uniqueBuyers}
+						value={null}
+						onValueChange={(buyer) => {
 							if (buyer) onSelect(buyer);
 						}}
 					>
-						<SelectTrigger>
-							<SelectValue placeholder="Choose a buyer" />
-						</SelectTrigger>
-						<SelectContent>
-							{uniqueBuyers.map((buyer) => (
-								<SelectItem
-									key={buyer.id}
-									value={buyer.id}
-									textValue={buyer.name}
-								>
-									<div className="flex flex-col items-start">
-										<span className="font-medium">{buyer.name}</span>
-										<span className="text-muted-foreground text-sm">
-											{buyer.city}, {buyer.state} - {buyer.gstin}
-										</span>
-									</div>
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+						<ComboboxInput placeholder="Search buyer..." showClear />
+						<ComboboxContent>
+							<ComboboxEmpty>No buyers found.</ComboboxEmpty>
+							<ComboboxList>
+								{(buyer: Buyer) => (
+									<ComboboxItem key={buyer.id} value={buyer}>
+										<div className="flex flex-col items-start">
+											<span className="font-medium">{buyer.name}</span>
+											<span className="text-muted-foreground text-sm">
+												{buyer.city}, {buyer.state} - {buyer.gstin}
+											</span>
+										</div>
+									</ComboboxItem>
+								)}
+							</ComboboxList>
+						</ComboboxContent>
+					</Combobox>
 				</div>
 			) : (
 				<div className="space-y-4">

@@ -8,6 +8,8 @@ import {
 	Text,
 	View,
 } from "@react-pdf/renderer";
+import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
+import { SIGN_PATH_D } from "../svg/sign";
 import { numberToWordsINR } from "../utils/num-to-words";
 import {
 	capitalizeWords,
@@ -17,8 +19,6 @@ import {
 	formatExpiry,
 } from "../utils/pdf-utils";
 import { registerFonts } from "../utils/registerFonts";
-import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
-import { SIGN_PATH_D } from "../svg/sign";
 
 registerFonts();
 
@@ -207,7 +207,9 @@ export function StentInvoiceDocument({
 					<View style={pdfStyles.infoRow}>
 						<View style={[pdfStyles.infoColumn, pdfStyles.billToColumn]}>
 							<Text style={pdfStyles.sectionTitle}>Bill To</Text>
-							<Text style={{ fontWeight: "bold" }}>{selectedInvoice.buyerName}</Text>
+							<Text style={{ fontWeight: "bold" }}>
+								{selectedInvoice.buyerName}
+							</Text>
 							{selectedInvoice.buyerAddressLine1 && (
 								<Text>{selectedInvoice.buyerAddressLine1}</Text>
 							)}
@@ -418,7 +420,9 @@ export function StentInvoiceDocument({
 											<Text>
 												Date:{" "}
 												<Text style={{ fontWeight: "bold" }}>
-													{item.patientDate ? formatDate(item.patientDate) : "-"}
+													{item.patientDate
+														? formatDate(item.patientDate)
+														: "-"}
 												</Text>
 											</Text>
 										</>
@@ -1127,7 +1131,12 @@ export const pdfStyles = StyleSheet.create({
 		textAlign: "right",
 		paddingRight: 2,
 	},
-	bankValue: { flex: 1, fontSize: FONT_SIZE_SMALL, fontWeight: "bold", paddingLeft: 2 },
+	bankValue: {
+		flex: 1,
+		fontSize: FONT_SIZE_SMALL,
+		fontWeight: "bold",
+		paddingLeft: 2,
+	},
 	itemsFooterRow: {
 		borderTopWidth: 1,
 		borderTopColor: "rgba(0,0,0,0)",

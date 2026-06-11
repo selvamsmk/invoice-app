@@ -43,7 +43,7 @@ export function StentInvoicePreview({
 			try {
 				const resp = await renderPDFMutation.mutateAsync({
 					id: selectedInvoice.id,
-								archiveOnRender: true,
+					archiveOnRender: true,
 				});
 				if (!resp || !resp.pdfBase64) return;
 				const base64 = await resp.pdfBase64;
@@ -141,17 +141,17 @@ export function StentInvoicePreview({
 								link.click();
 								document.body.removeChild(link);
 								URL.revokeObjectURL(url);
-							toast.success("Stent invoice downloaded successfully", {
-								description: `${selectedInvoice.invoiceNumber}.pdf`,
-								position: "top-right",
-							});
-						} catch (err) {
-							// eslint-disable-next-line no-console
-							console.error("Error generating PDF", err);
-							toast.error("Failed to download stent invoice", {
-								description: "Please try again",
-								position: "top-left",
-							});
+								toast.success("Stent invoice downloaded successfully", {
+									description: `${selectedInvoice.invoiceNumber}.pdf`,
+									position: "top-right",
+								});
+							} catch (err) {
+								// eslint-disable-next-line no-console
+								console.error("Error generating PDF", err);
+								toast.error("Failed to download stent invoice", {
+									description: "Please try again",
+									position: "top-left",
+								});
 							} finally {
 								setIsGeneratingPDF(false);
 							}

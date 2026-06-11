@@ -1,9 +1,9 @@
 import { App } from "@invoice-app/app-ui/App";
 import { createAppRouter } from "@invoice-app/app-ui/router";
 import ReactDOM from "react-dom/client";
+import { SidecarStatus } from "./components/SidecarStatus";
 import { orpc, queryClient } from "./orpc";
 import { initSidecarDebug } from "./tauri-debug";
-import { SidecarStatus } from "./components/SidecarStatus";
 
 // Optional: desktop-only global styles
 import "./index.css";

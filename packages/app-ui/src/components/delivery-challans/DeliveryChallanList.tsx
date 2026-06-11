@@ -1,10 +1,6 @@
 import type { DeliveryChallan } from "@invoice-app/api";
 import type React from "react";
-import {
-	TableBody,
-	TableCell,
-	TableRow,
-} from "@/components/ui/table";
+import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import DeliveryChallanRow from "./DeliveryChallanRow";
 
 type Props = {

@@ -17,7 +17,10 @@ export const invoiceDocumentArchive = sqliteTable(
 			.default(sql`CURRENT_TIMESTAMP`),
 	},
 	(table) => [
-		index("invoice_doc_archive_doc_idx").on(table.documentType, table.documentId),
+		index("invoice_doc_archive_doc_idx").on(
+			table.documentType,
+			table.documentId,
+		),
 		index("invoice_doc_archive_number_idx").on(table.documentNumber),
 	],
 );

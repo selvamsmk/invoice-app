@@ -9,10 +9,11 @@ const menuOrder: Record<string, number> = {
 	"/app/invoices": 1,
 	"/app/stent-invoices": 2,
 	"/app/delivery-challans": 3,
-	"/app/products": 4,
-	"/app/buyers": 5,
-	"/app/my-details": 6,
-	"/app/settings": 7,
+	"/app/supply-statement": 4,
+	"/app/products": 5,
+	"/app/buyers": 6,
+	"/app/my-details": 7,
+	"/app/settings": 8,
 };
 
 export function createAppRouter(context: RouterAppContext) {

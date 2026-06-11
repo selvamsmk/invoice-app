@@ -1,8 +1,8 @@
 import type { Product } from "@invoice-app/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Edit, Loader2, Package, Plus, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { Edit, Loader2, Package, Plus, Search, Trash2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddProductDialog } from "@/components/add-product-dialog";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -116,6 +117,25 @@ function Products() {
 	const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 	const [activeTab, setActiveTab] = useState("list");
 	const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+	const [searchQuery, setSearchQuery] = useState("");
+
+	const filteredProducts = useMemo(() => {
+		const normalizedQuery = searchQuery.trim().toLowerCase();
+		const productList = products.data ?? [];
+		if (!normalizedQuery) return productList;
+
+		return productList.filter((product) =>
+			[
+				product.name,
+				product.hsnCode,
+				product.defaultRate,
+				product.gstPercentage,
+			]
+				.join(" ")
+				.toLowerCase()
+				.includes(normalizedQuery),
+		);
+	}, [products.data, searchQuery]);
 
 	const handleAddProduct = async (
 		newProduct: Omit<Product, "id" | "createdAt" | "updatedAt">,
@@ -290,6 +310,21 @@ function Products() {
 						</div>
 					) : (
 						<>
+							<div className="mb-3 flex items-center justify-between gap-3">
+								<div className="relative w-full max-w-sm">
+									<Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+									<Input
+										aria-label="Search products"
+										className="pl-9"
+										placeholder="Search products..."
+										value={searchQuery}
+										onChange={(event) => setSearchQuery(event.target.value)}
+									/>
+								</div>
+								<p className="whitespace-nowrap text-muted-foreground text-sm">
+									{filteredProducts.length} of {products.data?.length ?? 0}
+								</p>
+							</div>
 							<div className="min-h-0 flex-1 overflow-hidden rounded-md border">
 								<div className="h-full overflow-y-auto">
 									<Table className="relative table-fixed">
@@ -307,75 +342,86 @@ function Products() {
 											</TableRow>
 										</TableHeader>
 										<TableBody>
-											{products.data?.map((product) => (
-												<TableRow key={product.id}>
-													<TableCell className="w-[250px] font-medium">
-														<Tooltip>
-															<TooltipTrigger asChild>
-																<div className="cursor-help truncate">
-																	{product.name}
-																</div>
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>{product.name}</p>
-															</TooltipContent>
-														</Tooltip>
-													</TableCell>
-													<TableCell className="w-[120px]">
-														₹{product.defaultRate.toFixed(2)}
-													</TableCell>
-													<TableCell className="w-[120px]">
-														<Tooltip>
-															<TooltipTrigger asChild>
-																<div className="cursor-help truncate">
-																	{product.hsnCode}
-																</div>
-															</TooltipTrigger>
-															<TooltipContent>
-																<p>{product.hsnCode}</p>
-															</TooltipContent>
-														</Tooltip>
-													</TableCell>
-													<TableCell className="w-[100px]">
-														{product.gstPercentage}%
-													</TableCell>
-													<TableCell className="w-[120px] text-right">
-														<div className="flex justify-end gap-2">
+											{filteredProducts.length > 0 ? (
+												filteredProducts.map((product) => (
+													<TableRow key={product.id}>
+														<TableCell className="w-[250px] font-medium">
 															<Tooltip>
 																<TooltipTrigger asChild>
-																	<Button
-																		variant="outline"
-																		size="sm"
-																		onClick={() => handleViewProduct(product)}
-																		className="cursor-pointer"
-																	>
-																		<Package className="h-4 w-4" />
-																	</Button>
+																	<div className="cursor-help truncate">
+																		{product.name}
+																	</div>
 																</TooltipTrigger>
 																<TooltipContent>
-																	<p>View Details</p>
+																	<p>{product.name}</p>
 																</TooltipContent>
 															</Tooltip>
-															<Button
-																variant="outline"
-																size="sm"
-																onClick={() => handleOpenEditDialog(product)}
-																className="cursor-pointer"
-															>
-																<Edit className="h-4 w-4" />
-															</Button>
-															<Button
-																variant="outline"
-																size="sm"
-																onClick={() => handleOpenDeleteDialog(product)}
-																className="cursor-pointer"
-															>
-																<Trash2 className="h-4 w-4" />
-															</Button>
-														</div>
+														</TableCell>
+														<TableCell className="w-[120px]">
+															₹{product.defaultRate.toFixed(2)}
+														</TableCell>
+														<TableCell className="w-[120px]">
+															<Tooltip>
+																<TooltipTrigger asChild>
+																	<div className="cursor-help truncate">
+																		{product.hsnCode}
+																	</div>
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>{product.hsnCode}</p>
+																</TooltipContent>
+															</Tooltip>
+														</TableCell>
+														<TableCell className="w-[100px]">
+															{product.gstPercentage}%
+														</TableCell>
+														<TableCell className="w-[120px] text-right">
+															<div className="flex justify-end gap-2">
+																<Tooltip>
+																	<TooltipTrigger asChild>
+																		<Button
+																			variant="outline"
+																			size="sm"
+																			onClick={() => handleViewProduct(product)}
+																			className="cursor-pointer"
+																		>
+																			<Package className="h-4 w-4" />
+																		</Button>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>View Details</p>
+																	</TooltipContent>
+																</Tooltip>
+																<Button
+																	variant="outline"
+																	size="sm"
+																	onClick={() => handleOpenEditDialog(product)}
+																	className="cursor-pointer"
+																>
+																	<Edit className="h-4 w-4" />
+																</Button>
+																<Button
+																	variant="outline"
+																	size="sm"
+																	onClick={() => handleOpenDeleteDialog(product)}
+																	className="cursor-pointer"
+																>
+																	<Trash2 className="h-4 w-4" />
+																</Button>
+															</div>
+														</TableCell>
+													</TableRow>
+												))
+											) : (
+												<TableRow>
+													<TableCell
+														colSpan={5}
+														className="py-8 text-center text-muted-foreground"
+													>
+														No products match your search.
 													</TableCell>
 												</TableRow>
-											))}
+											)}
 										</TableBody>
 									</Table>
 								</div>

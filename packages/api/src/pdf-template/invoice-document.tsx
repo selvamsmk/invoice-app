@@ -8,6 +8,8 @@ import {
 	Text,
 	View,
 } from "@react-pdf/renderer";
+import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
+import { SIGN_PATH_D } from "../svg/sign";
 import { numberToWordsINR } from "../utils/num-to-words";
 import {
 	capitalizeWords,
@@ -17,8 +19,6 @@ import {
 	formatExpiry,
 } from "../utils/pdf-utils";
 import { registerFonts } from "../utils/registerFonts";
-import { SEAL_PATH_D, SEAL_TRANSFORM, SEAL_VIEW_BOX } from "../svg/seal";
-import { SIGN_PATH_D } from "../svg/sign";
 
 registerFonts();
 
@@ -28,7 +28,7 @@ const FONT_SIZE_BASE = 9;
 const FONT_SIZE_SMALL = 9;
 const FONT_SIZE_TINY = 8;
 
-const CompanyLogoSvg = ({
+export const CompanyLogoSvg = ({
 	width = 60,
 	height = 60,
 }: {
@@ -49,7 +49,7 @@ const CompanyLogoSvg = ({
 	</Svg>
 );
 
-const AuthorizedSignSvg = ({
+export const AuthorizedSignSvg = ({
 	width = 132,
 	height = 52,
 }: {
@@ -67,7 +67,7 @@ const AuthorizedSignSvg = ({
 	</Svg>
 );
 
-const CompanySealSvg = ({
+export const CompanySealSvg = ({
 	width = "100%",
 	height = "100%",
 }: {

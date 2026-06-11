@@ -1,8 +1,8 @@
 import type { Buyer } from "@invoice-app/api";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Edit, Loader2, Plus, Trash2, Users } from "lucide-react";
-import { useRef, useState } from "react";
+import { Edit, Loader2, Plus, Search, Trash2, Users } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { AddBuyerDialog } from "@/components/add-buyer-dialog";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
 	Table,
 	TableBody,
@@ -115,6 +116,36 @@ function Buyers() {
 	const [buyerToDelete, setBuyerToDelete] = useState<Buyer | null>(null);
 	const [activeTab, setActiveTab] = useState("list");
 	const [selectedBuyer, setSelectedBuyer] = useState<Buyer | null>(null);
+	const [searchQuery, setSearchQuery] = useState("");
+
+	const filteredBuyers = useMemo(() => {
+		const normalizedQuery = searchQuery.trim().toLowerCase();
+		const buyerList = buyers.data ?? [];
+		if (!normalizedQuery) return buyerList;
+
+		return buyerList.filter((buyer) =>
+			[
+				buyer.name,
+				buyer.addressLine1,
+				buyer.addressLine2,
+				buyer.addressLine3,
+				buyer.city,
+				buyer.state,
+				buyer.country,
+				buyer.pincode,
+				buyer.gstin,
+				buyer.mobileNumber,
+				buyer.emailAddress,
+				buyer.drugLicenseNumber,
+				buyer.stateCode,
+				buyer.totalInvoices,
+			]
+				.filter(Boolean)
+				.join(" ")
+				.toLowerCase()
+				.includes(normalizedQuery),
+		);
+	}, [buyers.data, searchQuery]);
 
 	const handleAddBuyer = async (
 		newBuyer: Omit<Buyer, "id" | "createdAt" | "updatedAt">,
@@ -306,6 +337,21 @@ function Buyers() {
 						</div>
 					) : (
 						<>
+							<div className="mb-3 flex items-center justify-between gap-3">
+								<div className="relative w-full max-w-sm">
+									<Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+									<Input
+										aria-label="Search buyers"
+										className="pl-9"
+										placeholder="Search buyers..."
+										value={searchQuery}
+										onChange={(event) => setSearchQuery(event.target.value)}
+									/>
+								</div>
+								<p className="whitespace-nowrap text-muted-foreground text-sm">
+									{filteredBuyers.length} of {buyers.data?.length ?? 0}
+								</p>
+							</div>
 							<div className="min-h-0 flex-1 overflow-hidden rounded-md border">
 								{/* rest of table code continues... */}
 								<div className="h-full overflow-y-auto">
@@ -325,121 +371,132 @@ function Buyers() {
 											</TableRow>
 										</TableHeader>
 										<TableBody>
-											{buyers.data?.map((buyer) => {
-												const fullAddress = [
-													buyer.addressLine1,
-													buyer.addressLine2,
-													buyer.addressLine3,
-												]
-													.filter(Boolean)
-													.join(", ");
+											{filteredBuyers.length > 0 ? (
+												filteredBuyers.map((buyer) => {
+													const fullAddress = [
+														buyer.addressLine1,
+														buyer.addressLine2,
+														buyer.addressLine3,
+													]
+														.filter(Boolean)
+														.join(", ");
 
-												return (
-													<TableRow key={buyer.id}>
-														<TableCell className="w-[200px] font-medium">
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<div className="cursor-help truncate">
-																		{buyer.name}
-																	</div>
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{buyer.name}</p>
-																</TooltipContent>
-															</Tooltip>
-														</TableCell>
-														<TableCell className="w-[200px]">
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<div className="cursor-help truncate text-sm">
-																		{fullAddress}
-																	</div>
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{fullAddress}</p>
-																</TooltipContent>
-															</Tooltip>
-														</TableCell>
-														<TableCell className="w-[120px]">
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<div className="cursor-help truncate">
-																		{buyer.city}
-																	</div>
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{buyer.city}</p>
-																</TooltipContent>
-															</Tooltip>
-														</TableCell>
-														<TableCell className="w-[120px]">
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<div className="cursor-help truncate">
-																		{buyer.state}
-																	</div>
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{buyer.state}</p>
-																</TooltipContent>
-															</Tooltip>
-														</TableCell>
-														<TableCell className="w-[100px]">
-															{buyer.pincode}
-														</TableCell>
-														<TableCell className="w-[150px]">
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<div className="cursor-help truncate">
-																		{buyer.gstin}
-																	</div>
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>{buyer.gstin}</p>
-																</TooltipContent>
-															</Tooltip>
-														</TableCell>
-														<TableCell className="w-20">
-															{buyer.totalInvoices}
-														</TableCell>
-														<TableCell className="w-[160px] text-right">
-															<div className="flex justify-end gap-2">
+													return (
+														<TableRow key={buyer.id}>
+															<TableCell className="w-[200px] font-medium">
 																<Tooltip>
 																	<TooltipTrigger asChild>
-																		<Button
-																			variant="outline"
-																			size="sm"
-																			onClick={() => handleViewBuyer(buyer)}
-																			className="cursor-pointer"
-																		>
-																			<Users className="h-4 w-4" />
-																		</Button>
+																		<div className="cursor-help truncate">
+																			{buyer.name}
+																		</div>
 																	</TooltipTrigger>
 																	<TooltipContent>
-																		<p>View Details</p>
+																		<p>{buyer.name}</p>
 																	</TooltipContent>
 																</Tooltip>
-																<Button
-																	variant="outline"
-																	size="sm"
-																	onClick={() => handleOpenEditDialog(buyer)}
-																	className="cursor-pointer"
-																>
-																	<Edit className="h-4 w-4" />
-																</Button>
-																<Button
-																	variant="outline"
-																	size="sm"
-																	onClick={() => handleOpenDeleteDialog(buyer)}
-																	className="cursor-pointer"
-																>
-																	<Trash2 className="h-4 w-4" />
-																</Button>
-															</div>
-														</TableCell>
-													</TableRow>
-												);
-											})}
+															</TableCell>
+															<TableCell className="w-[200px]">
+																<Tooltip>
+																	<TooltipTrigger asChild>
+																		<div className="cursor-help truncate text-sm">
+																			{fullAddress}
+																		</div>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>{fullAddress}</p>
+																	</TooltipContent>
+																</Tooltip>
+															</TableCell>
+															<TableCell className="w-[120px]">
+																<Tooltip>
+																	<TooltipTrigger asChild>
+																		<div className="cursor-help truncate">
+																			{buyer.city}
+																		</div>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>{buyer.city}</p>
+																	</TooltipContent>
+																</Tooltip>
+															</TableCell>
+															<TableCell className="w-[120px]">
+																<Tooltip>
+																	<TooltipTrigger asChild>
+																		<div className="cursor-help truncate">
+																			{buyer.state}
+																		</div>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>{buyer.state}</p>
+																	</TooltipContent>
+																</Tooltip>
+															</TableCell>
+															<TableCell className="w-[100px]">
+																{buyer.pincode}
+															</TableCell>
+															<TableCell className="w-[150px]">
+																<Tooltip>
+																	<TooltipTrigger asChild>
+																		<div className="cursor-help truncate">
+																			{buyer.gstin}
+																		</div>
+																	</TooltipTrigger>
+																	<TooltipContent>
+																		<p>{buyer.gstin}</p>
+																	</TooltipContent>
+																</Tooltip>
+															</TableCell>
+															<TableCell className="w-20">
+																{buyer.totalInvoices}
+															</TableCell>
+															<TableCell className="w-[160px] text-right">
+																<div className="flex justify-end gap-2">
+																	<Tooltip>
+																		<TooltipTrigger asChild>
+																			<Button
+																				variant="outline"
+																				size="sm"
+																				onClick={() => handleViewBuyer(buyer)}
+																				className="cursor-pointer"
+																			>
+																				<Users className="h-4 w-4" />
+																			</Button>
+																		</TooltipTrigger>
+																		<TooltipContent>
+																			<p>View Details</p>
+																		</TooltipContent>
+																	</Tooltip>
+																	<Button
+																		variant="outline"
+																		size="sm"
+																		onClick={() => handleOpenEditDialog(buyer)}
+																		className="cursor-pointer"
+																	>
+																		<Edit className="h-4 w-4" />
+																	</Button>
+																	<Button
+																		variant="outline"
+																		size="sm"
+																		onClick={() => handleOpenDeleteDialog(buyer)}
+																		className="cursor-pointer"
+																	>
+																		<Trash2 className="h-4 w-4" />
+																	</Button>
+																</div>
+															</TableCell>
+														</TableRow>
+													);
+												})
+											) : (
+												<TableRow>
+													<TableCell
+														colSpan={8}
+														className="py-8 text-center text-muted-foreground"
+													>
+														No buyers match your search.
+													</TableCell>
+												</TableRow>
+											)}
 										</TableBody>
 									</Table>
 								</div>

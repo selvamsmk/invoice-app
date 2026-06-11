@@ -9,10 +9,12 @@ import { useAppContext } from "@/hooks/useAppContext";
 
 interface DeliveryChallanPreviewProps {
 	challanId: string;
+	challanNumber: string;
 }
 
 export default function DeliveryChallanPreview({
 	challanId,
+	challanNumber,
 }: DeliveryChallanPreviewProps) {
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isLoadingPreview, setIsLoadingPreview] = useState(false);
@@ -20,9 +22,7 @@ export default function DeliveryChallanPreview({
 	const { orpc } = useAppContext();
 
 	// renderPDF mutation
-	const renderPDFMutation = useMutation(
-		orpc.renderDcPDF.mutationOptions(),
-	);
+	const renderPDFMutation = useMutation(orpc.renderDcPDF.mutationOptions());
 
 	useEffect(() => {
 		let mounted = true;
@@ -81,7 +81,7 @@ export default function DeliveryChallanPreview({
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
-			link.download = `delivery-challan-${challanId}.pdf`;
+			link.download = `${challanNumber}.pdf`;
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);

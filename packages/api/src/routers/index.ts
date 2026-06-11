@@ -8,6 +8,7 @@ import { invoicesRouter } from "./invoices";
 import { productsRouter } from "./products";
 import { settingsRouter } from "./settings";
 import { stentInvoicesRouter } from "./stent-invoices";
+import { supplyStatementRouter } from "./supply-statement";
 
 export const appRouter = {
 	healthCheck: publicProcedure.handler(() => {
@@ -26,6 +27,7 @@ export const appRouter = {
 	...invoicesRouter,
 	...stentInvoicesRouter,
 	...deliveryChallansRouter,
+	...supplyStatementRouter,
 	...dashboardRouter,
 	...settingsRouter,
 };

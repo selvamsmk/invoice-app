@@ -8,6 +8,8 @@ import {
 import { z } from "zod";
 import { publicProcedure } from "../index";
 import { renderDeliveryChallanPdf } from "../pdf-render";
+import { getConfiguredArchiveRoot } from "../utils/archive-root";
+import { mapDeliveryChallanDataToChallanProps } from "../utils/dbToDeliveryChallanProps";
 import {
 	archivePdfWithHardLinks,
 	deleteArchivedPdf,
@@ -18,9 +20,6 @@ import {
 	parseLinkedPaths,
 	upsertArchiveMetadata,
 } from "../utils/invoice-archive-metadata";
-import { getConfiguredArchiveRoot } from "../utils/archive-root";
-import { mapDeliveryChallanDataToChallanProps } from "../utils/dbToDeliveryChallanProps";
-import type { DeliveryChallanProps } from "../pdf-template/delivery-challan-document";
 import streamToBase64 from "../utils/streamToBase64";
 
 export const deliveryChallansRouter = {
@@ -330,7 +329,21 @@ export const deliveryChallansRouter = {
 			const updatedChallan = updateResult[0];
 			if (!updatedChallan) throw new Error("Failed to update delivery challan");
 
-			// Delete existing line items and batches
+			// Delete existing batch rows first, then line items.
+			// There is no FK cascade in the schema, so skipping this leaves orphaned
+			// batches that can collide on deterministic batch ids during re-insert.
+			const existingLineItems = await db
+				.select({ id: deliveryChallanLineItem.id })
+				.from(deliveryChallanLineItem)
+				.where(eq(deliveryChallanLineItem.challanId, input.id));
+
+			for (const lineItem of existingLineItems) {
+				await db
+					.delete(deliveryChallanLineItemBatch)
+					.where(eq(deliveryChallanLineItemBatch.lineItemId, lineItem.id));
+			}
+
+			// Delete existing line items
 			await db
 				.delete(deliveryChallanLineItem)
 				.where(eq(deliveryChallanLineItem.challanId, input.id));

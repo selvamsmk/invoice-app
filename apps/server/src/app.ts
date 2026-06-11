@@ -14,15 +14,11 @@ import { requestLogger } from "./plugins/logger";
 function enhancedErrorLogger(error: any) {
 	// Handle oRPC validation errors with data.issues structure
 	if (error?.data?.issues && Array.isArray(error.data.issues)) {
-		const issues = error.data.issues.map(
-			(issue: any) => {
-				const path = issue.path?.length > 0 ? issue.path.join(".") : "root";
-				return `  ✗ ${path}: ${issue.message}`;
-			},
-		);
-		console.error(
-			`\n❌ Input Validation Failed\n${issues.join("\n")}\n`,
-		);
+		const issues = error.data.issues.map((issue: any) => {
+			const path = issue.path?.length > 0 ? issue.path.join(".") : "root";
+			return `  ✗ ${path}: ${issue.message}`;
+		});
+		console.error(`\n❌ Input Validation Failed\n${issues.join("\n")}\n`);
 		return;
 	}
 

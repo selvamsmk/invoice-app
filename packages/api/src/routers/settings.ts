@@ -1,27 +1,27 @@
 import { appSettings, db, eq } from "@invoice-app/db";
 import { z } from "zod";
 import { publicProcedure } from "../index";
+import renderInvoicePdf, {
+	renderDeliveryChallanPdf,
+	renderStentInvoicePdf,
+} from "../pdf-render";
 import {
 	getConfiguredArchiveRoot,
 	invoiceExportDirKey,
 } from "../utils/archive-root";
+import { mapDeliveryChallanDataToChallanProps } from "../utils/dbToDeliveryChallanProps";
+import { mapInvoiceDataToInvoiceProps } from "../utils/dbToInvoiceProps";
+import { mapStentInvoiceDataToInvoiceProps } from "../utils/dbToStentInvoiceProps";
+import {
+	archivePdfWithHardLinks,
+	validateHardLinkIntegrity,
+} from "../utils/invoice-archive";
 import {
 	getArchiveMetadataByDocument,
 	listArchiveMetadata,
 	parseLinkedPaths,
 	upsertArchiveMetadata,
 } from "../utils/invoice-archive-metadata";
-import {
-	archivePdfWithHardLinks,
-	validateHardLinkIntegrity,
-} from "../utils/invoice-archive";
-import renderInvoicePdf, {
-	renderDeliveryChallanPdf,
-	renderStentInvoicePdf,
-} from "../pdf-render";
-import { mapInvoiceDataToInvoiceProps } from "../utils/dbToInvoiceProps";
-import { mapStentInvoiceDataToInvoiceProps } from "../utils/dbToStentInvoiceProps";
-import { mapDeliveryChallanDataToChallanProps } from "../utils/dbToDeliveryChallanProps";
 import streamToBase64 from "../utils/streamToBase64";
 
 async function ensurePdfBuffer(bufferOrStream: unknown): Promise<Buffer> {
@@ -33,7 +33,10 @@ async function ensurePdfBuffer(bufferOrStream: unknown): Promise<Buffer> {
 	return Buffer.from(base64, "base64");
 }
 
-async function syncInvoiceArchives(archiveRoot: string | null, companyData: unknown) {
+async function syncInvoiceArchives(
+	archiveRoot: string | null,
+	companyData: unknown,
+) {
 	const invoices = await db.query.invoice.findMany({
 		with: {
 			buyer: true,
@@ -48,7 +51,10 @@ async function syncInvoiceArchives(archiveRoot: string | null, companyData: unkn
 	});
 
 	for (const invoiceData of invoices) {
-		const metadata = await getArchiveMetadataByDocument("invoice", invoiceData.id);
+		const metadata = await getArchiveMetadataByDocument(
+			"invoice",
+			invoiceData.id,
+		);
 		const bufferOrStream = await renderInvoicePdf(
 			mapInvoiceDataToInvoiceProps(invoiceData),
 			companyData ?? undefined,
